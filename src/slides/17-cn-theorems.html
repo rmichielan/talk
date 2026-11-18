@@ -1,0 +1,46 @@
+<section class="stage s18" data-slide="18" data-step="0" aria-label="Common Neighbors exact recovery regimes">
+ <div class="line-label">V. COMMON NEIGHBORS</div>
+ <header class="top"><h2>Recovery guarantees for CN</h2></header>
+ <div class="cn18-main">
+  <article class="cn18-left vd-card">
+   <div class="vd-panel-heading"><strong>THEOREM 3.3</strong><span>POSITIVE RESULT</span></div>
+   <p class="cn18-lead">Common Neighbors achieves <strong>exact recovery w.h.p.</strong> if any of the following holds:</p>
+   <div class="cn18-conditions">
+   <section class="cn18-condition cn18-a" data-region="A">
+    <div class="cn18-condition-head"><span class="cn-letter">A</span><strong>Large mean degree</strong></div>
+    <div class="cn18-formula"><span class="tex" data-math="\mu n\,e^{-c_{1,d}\mu}=o(1)"></span></div>
+    <div class="cn18-assumption"><span class="tex" data-math="k\le\eta n,\quad 0<\eta<1"></span></div>
+    <p class="cn18-interpretation">Large mean degree rules out false positives, even for very small planted cliques.</p>
+   </section>
+   <section class="cn18-condition cn18-b" data-region="B">
+    <div class="cn18-condition-head"><span class="cn-letter">B</span><strong>Too few common neighbors</strong></div>
+    <div class="cn18-formula cn18-formula-long"><span class="tex" data-math="\frac{\mu n}{2}\,\frac{(c_{2,d}\mu)^{k-2}e^{-c_{2,d}\mu}}{(k-2)!}=o(1)"></span></div>
+    <div class="cn18-assumption"><span class="tex" data-math="k-2\le c_{2,d}\mu"></span></div>
+    <p class="cn18-interpretation">Natural edges rarely have the small number of common neighbors required.</p>
+   </section>
+   <section class="cn18-condition cn18-c" data-region="C">
+    <div class="cn18-condition-head"><span class="cn-letter">C</span><strong>Too many common neighbors required</strong></div>
+    <div class="cn18-formula cn18-formula-long"><span class="tex" data-math="\frac{n}{2}\,\frac{\mu^{k-1}e^{-\mu}}{(k-2)!}=o(1)"></span></div>
+    <div class="cn18-assumption"><span class="tex" data-math="k-2\ge\mu,\quad k=o(n/\mu)"></span></div>
+    <p class="cn18-interpretation">The required number of common neighbors is too large for a natural edge.</p>
+   </section>
+   </div>
+   <p class="cn18-small">Positive, sufficient conditions; <span class="tex" data-math="c_{1,d},c_{2,d}>0"></span> depend on the dimension.</p>
+  </article>
+  <article class="cn18-right vd-card">
+   <div class="vd-panel-heading"><strong>QUALITATIVE RECOVERY REGIMES</strong><span>LOG–LOG SCALES</span></div>
+   <div class="q27-full-diagram q27-cn-full" aria-label="Common Neighbors qualitative regions">
+  <div class="q27-regime-labels " aria-label="Schematic connectivity regimes"><span><strong>SUB-CONNECTIVITY</strong><small>&mu; &ll; log n</small></span><span><strong>CONNECTIVITY</strong><small>&mu; &asymp; log n</small></span><span><strong>SUPER-CONNECTIVITY</strong><small>&mu; &gg; log n</small></span></div>
+  <div class="q27-plot-row"><div class="q27-y-axis"><b>k</b><div class="q27-y-ticks" aria-hidden="true"><span class="q27-tick-top">n</span><span class="q27-tick-log">log n</span><span class="q27-tick-bottom">1</span></div></div>
+    <div class="q27-cn-plot"><img class="q27-plot-image" data-asset="src/assets/qualitative/qualitative-cn-v3-full.svg" alt="Qualitative Common Neighbors region geometry with green and beige areas, gray transition bands and an internal dashed boundary" />
+      <span class="cn26-annotation cn26-a" aria-label="Condition A">A</span>
+      <span class="cn26-annotation cn26-b" aria-label="Condition B">B</span>
+      <span class="cn26-annotation cn26-c" aria-label="Condition C">C</span>
+    </div></div>
+  <div class="q27-x-axis">Mean degree <i>&mu;</i> increasing <span aria-hidden="true">&rarr;</span></div>
+  <div class="q27-legend" aria-label="Qualitative region legend"><span><i class="q27-swatch good"></i>Guaranteed recovery</span><span><i class="q27-swatch unknown"></i>No theorem</span><span><i class="q27-swatch transition"></i>Regime change</span></div><p class="q27-dashed-explainer">Dashed line: further qualitative division within super-connectivity.</p>
+</div>
+  </article>
+ </div>
+ <div class="foot"><strong>18</strong> / COMMON NEIGHBORS</div>
+</section>

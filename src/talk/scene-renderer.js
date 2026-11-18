@@ -1,0 +1,308 @@
+/* Each slide owns its narration; slides 8–10 share one RGG state. */
+const DeckScenes=(()=>{
+ const {svg,NS,rng,key,clamp,mod,torusSegments}=Model;
+ const get=id=>document.getElementById(id);
+ const state={seed:2049226,coverSeed:20261112,hiddenSeed:54029,erSeed:7751,world:null,cover:null,hidden:null,pair:null,er:null,geometryStep:0,geometryNodes:[],recMode:0,recOverride:null,recAnimating:false,renderRequested:false,paused:false,coverTimer:0,coverGlitchTimer:0};
+ const point=(el,p,cls,r)=>svg('circle',{cx:p.x,cy:p.y,r,class:cls},el);
+ const line=(el,a,b,cls='net-edge')=>svg('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:cls},el);
+ const group=(parent,attrs={})=>svg('g',attrs,parent);
+ const S=(x,y,p,w=1,h=w)=>({x:x+p.x*w,y:y+p.y*h});
+ function start(){state.world=Model.makeRGG(state.seed,1.2*Math.log(200),200,5);state.hidden=Model.makeHidden(state.hiddenSeed);state.pair=Model.makePair(state.hiddenSeed^0xa82);state.er=Model.generateER(state.erSeed,29,.5,7);initCover();initGeometry();initControls();}
+ function initCover(){
+   // Preserve the exact 12-Nov signal propagation and RGB-split glitch logic.
+   state.cover=new ScientificNetwork(get('network'),{seed:state.coverSeed,n:87,meanDegree:8.0});
+   if(Number(get('slide').dataset.page)===1)state.cover.start();
+ }
+ function renderCover(){
+   if(!state.cover)return;
+   state.cover.setAboutMode(Number(get('slide').dataset.step)>=1);
+   state.cover.setPaused(state.paused);
+   if(Number(get('slide').dataset.page)===1)state.cover.start();
+ }
+ function flashCover(){state.cover?.revealAnomaly();}
+ function simpleGraph(rootId,obj,opts={}){const root=get(rootId);if(!root)return;root.replaceChildren();const box=opts.box||[34,30,opts.width||770,opts.height||426],coords=(opts.positions||obj.points).map(p=>S(box[0],box[1],p,box[2],box[3]));let edges=opts.edges || obj.full || obj.baseline || [];const background=group(root),active=group(root),nodes=group(root);
+  const selected=new Set(opts.selected||[]),addSet=new Set((opts.highlightEdges||[]).map(([a,b])=>key(a,b))),naturalSet=new Set((opts.naturalEdges||[]).map(([a,b])=>key(a,b)));
+  for(const [a,b] of edges){const k=key(a,b);line(k===undefined?background:(!addSet.has(k)&&!naturalSet.has(k)?background:active),coords[a],coords[b],addSet.has(k)?'net-edge added':naturalSet.has(k)?'net-edge natural-highlight':'net-edge');}
+  for(let i=0;i<coords.length;i++)point(nodes,coords[i],selected.has(i)?(opts.naturalSelection?'net-node natural-marked':'net-node marked'):'net-node',selected.has(i)&&opts.selectedRadius?opts.selectedRadius:(opts.radius||5.3));
+ }
+ // The visual coordinates are derived from adjacency only (Kamada-Kawai),
+ // never from the arbitrary positions used to sample the null graph.
+ function hiddenKK(obj){
+  if(obj.kkPositions)return obj.kkPositions;
+  const topology={seed:obj.seed,N:obj.n,mu:0,k:0,graphVersion:0,allEdges:obj.full,kkCache:null};
+  obj.kkPositions=Model.kkLayout(topology);
+  return obj.kkPositions;
+ }
+ function renderHidden(){
+  const step=Number(get('slide').dataset.step),h=state.hidden;
+  const natural=step===1, planted=step===2;
+  const hset=natural?(h.natural||[]):planted?h.planted:[];
+  const motif=natural?h.natural:planted?h.planted:null;
+  const markedEdges=motif?Model.Hedges.map(([i,j])=>[motif[i],motif[j]]):[];
+  simpleGraph('hidden-graph',h,{edges:h.full,positions:hiddenKK(h),selected:hset,
+    naturalSelection:natural,naturalEdges:natural?markedEdges:[],
+    highlightEdges:planted?markedEdges:[],radius:6.2,width:772,height:416});
+  get('hidden-first-question').textContent=natural
+    ?'This copy is natural — it was NOT planted.'
+    :planted?'This is the PLANTED copy of the same pattern.'
+    :'A copy of H was planted. Can you find the planted one?';
+  const pair=state.pair;
+  for(const lab of ['a','b']){
+    const label=lab.toUpperCase(),p=pair[label],correct=pair.correct===label,show=step>=4&&correct;
+    simpleGraph('hidden-pair-'+lab,p,{box:[30,20,540,370],edges:p.full,positions:hiddenKK(p),
+      selected:show?p.planted:[],highlightEdges:show?Model.Hedges.map(([i,j])=>[p.planted[i],p.planted[j]]):[],radius:5.8});
+    const root=get('hidden-pair-'+lab);
+    root?.parentElement?.classList.toggle('right-answer',show);
+  }
+ }
+ function erKK(o){
+  if(o.kkPositions)return o.kkPositions;
+  const graph={seed:o.seed,N:o.n,mu:0,k:0,graphVersion:0,allEdges:o.baseline,kkCache:null};
+  o.kkPositions=Model.kkLayout(graph);return o.kkPositions;
+ }
+ function renderER(){
+  const step=Number(get('slide').dataset.step),o=state.er;
+  const vertices=step===1||step===2?o.planted:[];
+  const edges=step<=1?o.baseline:[...o.baseline,...o.added];
+  simpleGraph('er-graph',o,{box:[42,32,716,530],positions:erKK(o),edges,
+   selected:vertices,highlightEdges:step===2?o.added:[],radius:6.2,selectedRadius:11.1});
+  get('er-step-label').textContent=['BASELINE · G(n, ½)','SELECT UNIFORMLY',
+    'ADD MISSING EDGES','HIDE PLANTED SET'][step];
+ }
+
+ /* Forty fixed identities with illustrative latent coordinates (never empirical individual data).
+    Geography: unequal clusters in the urbanized portion of Torino.
+    Political: a central-heavy CONTINUUM on both axes, informed by survey evidence
+      on marginal left-right orientation; no synthetic party groups or claim about
+      the unobserved two-dimensional distribution.
+    Age-interest: independent ages; a right-skewed low-interest distribution. */
+ const geographic=[[0.493,0.620],[0.288,0.385],[0.620,0.508],[0.561,0.497],[0.340,0.754],[0.652,0.516],[0.134,0.643],[0.511,0.531],[0.262,0.680],[0.699,0.511],[0.337,0.469],[0.520,0.513],[0.233,0.738],[0.379,0.407],[0.334,0.767],[0.499,0.479],[0.363,0.336],[0.471,0.798],[0.441,0.707],[0.437,0.499],[0.375,0.472],[0.235,0.382],[0.572,0.357],[0.562,0.369],[0.544,0.529],[0.268,0.532],[0.292,0.595],[0.618,0.485],[0.651,0.443],[0.351,0.485],[0.398,0.742],[0.569,0.429],[0.513,0.393],[0.334,0.318],[0.435,0.771],[0.330,0.257],[0.278,0.731],[0.418,0.665],[0.337,0.412],[0.257,0.314]];
+ const political=[[0.349,0.662],[0.782,0.566],[0.588,0.705],[0.559,0.539],[0.455,0.435],[0.582,0.621],[0.337,0.535],[0.654,0.527],[0.436,0.373],[0.289,0.538],[0.611,0.554],[0.167,0.576],[0.636,0.494],[0.508,0.572],[0.668,0.428],[0.597,0.577],[0.493,0.793],[0.489,0.662],[0.415,0.355],[0.156,0.404],[0.706,0.598],[0.620,0.375],[0.609,0.532],[0.882,0.247],[0.712,0.627],[0.633,0.376],[0.561,0.632],[0.677,0.463],[0.413,0.621],[0.406,0.684],[0.501,0.245],[0.651,0.429],[0.645,0.435],[0.347,0.582],[0.577,0.367],[0.516,0.482],[0.390,0.528],[0.466,0.385],[0.884,0.424],[0.204,0.571]];
+ const ageMath=[[0.267,0.909],[0.621,0.631],[0.649,0.677],[0.853,0.406],[0.333,0.811],[0.594,0.706],[0.596,0.710],[0.352,0.888],[0.229,0.876],[0.859,0.940],[0.722,0.940],[0.653,0.755],[0.758,0.605],[0.426,0.469],[0.174,0.571],[0.165,0.779],[0.587,0.664],[0.468,0.753],[0.896,0.825],[0.599,0.823],[0.736,0.711],[0.815,0.772],[0.486,0.907],[0.570,0.640],[0.920,0.723],[0.860,0.773],[0.814,0.718],[0.860,0.881],[0.453,0.476],[0.453,0.816],[0.293,0.901],[0.368,0.461],[0.722,0.671],[0.593,0.601],[0.405,0.706],[0.595,0.531],[0.544,0.623],[0.543,0.834],[0.080,0.304],[0.425,0.485]];
+ const geometryLists=[geographic,political,ageMath];
+ const PERSON_COLOR='#287f91';
+ function geomXY(p){return {x:45+p[0]*792,y:40+p[1]*475};}
+ function mapLabel(g,text,x,y,opts={}){const t=svg('text',{x,y,fill:opts.color||'#60838a','font-size':opts.size||13,'font-weight':opts.bold?750:550,'letter-spacing':opts.spacing||'.02em','text-anchor':opts.anchor||'start',opacity:opts.opacity??1,transform:opts.transform},g);t.textContent=text;return t;}
+ function torinoMap(g){
+   // One cartographic layer only. The handmade street-grid illustration from
+   // the early mockup has been entirely removed (not hidden under the map).
+   const mapX=16,mapY=12,mapW=868,mapH=548;
+   svg('rect',{x:mapX,y:mapY,width:mapW,height:mapH,rx:10,fill:'#f8fafb'},g);
+   // Real street map of Torino, © OpenStreetMap contributors / Flappiefh,
+   // CC BY-SA 3.0; clipped to the central districts and river Po.
+   // Muted on purpose: individual vertices are the foreground information.
+   // If offline, only the neutral background appears; never a fake street map.
+   const frame=svg('svg',{x:mapX,y:mapY,width:mapW,height:mapH,
+      viewBox:'480 545 690 438',preserveAspectRatio:'xMidYMid slice'},g);
+   svg('image',{
+     href:'https://upload.wikimedia.org/wikipedia/commons/0/0e/Location_map_Italy_Torino.jpg',
+     x:0,y:0,width:1653,height:1590,opacity:.62,
+     preserveAspectRatio:'none'
+   },frame);
+   svg('rect',{x:mapX,y:mapY,width:mapW,height:mapH,rx:10,
+      fill:'none',stroke:'#dce7eb','stroke-width':1.4,'pointer-events':'none'},g);
+ }
+ function politicalMap(g){
+   // Balanced margins above and below the square, with an unmistakable
+   // political-compass grid. Stronger pastel quadrants remain subordinate to dots.
+   const x=217,y=61,a=450,h=a/2;
+   svg('rect',{x:x-9,y:y-9,width:a+18,height:a+18,rx:12,fill:'#ffffff',stroke:'#cfdfe4','stroke-width':1.6},g);
+   for(const [qx,qy,fill] of [[x,y,'#d4e9df'],[x+h,y,'#e1e2f4'],[x,y+h,'#f1dce9'],[x+h,y+h,'#f1e7cf']])
+     svg('rect',{x:qx,y:qy,width:h,height:h,fill},g);
+   // Grid beneath the dots, 10 equal intervals in each direction.
+   for(let t=1;t<10;t++){
+     const u=x+a*t/10,v=y+a*t/10;
+     svg('line',{x1:u,y1:y,x2:u,y2:y+a,stroke:'#98b4bc','stroke-width':1.15,'stroke-opacity':.58},g);
+     svg('line',{x1:x,y1:v,x2:x+a,y2:v,stroke:'#98b4bc','stroke-width':1.15,'stroke-opacity':.58},g);
+   }
+   svg('rect',{x,y,width:a,height:a,fill:'none',stroke:'#8caeb8','stroke-width':2},g);
+   svg('line',{x1:x+h,y1:y,x2:x+h,y2:y+a,stroke:'#779da9','stroke-width':2.8},g);
+   svg('line',{x1:x,y1:y+h,x2:x+a,y2:y+h,stroke:'#779da9','stroke-width':2.8},g);
+   mapLabel(g,'LEFT',143,y+h+6,{size:19,bold:true,color:'#527c8c',anchor:'middle'});
+   mapLabel(g,'RIGHT',753,y+h+6,{size:19,bold:true,color:'#527c8c',anchor:'middle'});
+   mapLabel(g,'AUTHORITARIAN',x+h,33,{size:19,bold:true,color:'#527c8c',anchor:'middle'});
+   mapLabel(g,'LIBERTARIAN',x+h,549,{size:19,bold:true,color:'#527c8c',anchor:'middle'});
+ }
+ function personXY(level,p){
+   return level===1?{x:217+450*p[0],y:61+450*p[1]}:
+     level===2?{x:126+706*p[0],y:47+446*p[1]}:geomXY(p);
+ }
+ function drawAvatar(g,x,y,older){
+   // Larger editorial portraits, drawn as vectors so they remain crisp in PDF exports.
+   // The slight background tint separates them from the x-axis without cartoon bubbles.
+   const a=group(g,{transform:`translate(${x} ${y})`});
+   const ink='#426b7a',outline='#ffffff';
+   svg('circle',{cx:0,cy:0,r:37,fill:older?'#e6eef1':'#e9f4f5',stroke:older?'#bbd1d9':'#b6dce3','stroke-width':1.55},a);
+   // Shoulders and collar.
+   svg('path',{d:older?'M-31 30 Q-29 10 -11 8 L12 8 Q30 11 31 30 Z':'M-30 30 Q-28 10 -9 10 L9 10 Q28 10 30 30 Z',fill:older?'#557785':'#327e99',stroke:outline,'stroke-width':1.25},a);
+   svg('path',{d:older?'M-10 9 L0 22 L10 9':'M-10 11 L0 18 L10 11',fill:'none',stroke:older?'#dae5e7':'#bfe3ea','stroke-width':3,'stroke-linejoin':'round'},a);
+   svg('rect',{x:-6,y:7,width:12,height:9,rx:5,fill:'#e4b18d'},a);
+   // Ears and face.
+   for(const cx of [-17,17])svg('ellipse',{cx,cy:-5,rx:4.9,ry:7.3,fill:'#e8b590'},a);
+   svg('ellipse',{cx:0,cy:-7,rx:18.3,ry:22.2,fill:'#f0c49c',stroke:'#dca67f','stroke-width':1.0},a);
+   if(older){
+     // Silver swept hair and sideburns.
+     svg('path',{d:'M-17 -11 Q-22 -27 -6 -29 Q3 -35 13 -27 Q21 -25 18 -11 L13 -18 Q5 -16 -1 -19 Q-8 -14 -17 -11Z',fill:'#f5f7f5',stroke:'#9eb4bc','stroke-width':1.4},a);
+     svg('path',{d:'M-18 -15 Q-22 -10 -18 -1 M18 -15 Q22 -10 18 -1',fill:'none',stroke:'#d8e0df','stroke-width':4.4,'stroke-linecap':'round'},a);
+     // Paired glasses with a deliberate bridge.
+     for(const cx of [-8.3,8.3])svg('rect',{x:cx-7.7,y:-12.3,width:15.3,height:12.8,rx:5.9,fill:'#ebf4f5','fill-opacity':.18,stroke:ink,'stroke-width':2.2},a);
+     svg('path',{d:'M-.5 -6 Q0 -9 .5 -6 M-16 -8 L-20 -9 M16 -8 L20 -9',fill:'none',stroke:ink,'stroke-width':1.8},a);
+     svg('path',{d:'M-9 6 Q0 10 9 6 M-12 2 l3 2 M12 2 l-3 2',fill:'none',stroke:'#bf8972','stroke-width':1.2,'stroke-linecap':'round'},a);
+     svg('path',{d:'M-5 13 Q0 16 5 13',fill:'none',stroke:'#f5f7f5','stroke-width':2.6,'stroke-linecap':'round'},a);
+   }else{
+     // Distinct child hairstyle, open eyes and a subtle freckle.
+     svg('path',{d:'M-17 -15 Q-23 -31 -5 -28 Q2 -34 12 -28 Q22 -24 18 -12 L13 -18 Q6 -12 0 -18 Q-6 -13 -17 -15Z',fill:'#7d563c',stroke:'#664936','stroke-width':1.3},a);
+     svg('path',{d:'M-17 -16 Q-7 -20 -3 -23 M5 -22 Q10 -22 16 -17',fill:'none',stroke:'#ab7950','stroke-width':2.4,'stroke-linecap':'round'},a);
+     for(const cx of [-7,7])svg('ellipse',{cx,cy:-7,rx:1.75,ry:2.55,fill:'#354f5a'},a);
+     for(const cx of [-12,12])svg('circle',{cx,cy:2.7,r:1,fill:'#c78c78'},a);
+     svg('path',{d:'M-5 5 Q0 10 5 5',fill:'none',stroke:'#a35b53','stroke-width':1.8,'stroke-linecap':'round'},a);
+   }
+ }
+ function trendIcon(g,x,y,rising){
+   // Compact financial graphic: separate quantitative metaphor, not part of the data scatter.
+   const a=group(g,{transform:`translate(${x} ${y})`});
+   const ink=rising?'#168e70':'#d36e65', bg=rising?'#ecf8f3':'#fff1ee';
+   svg('rect',{x:-36,y:-35,width:72,height:68,rx:11,fill:bg,stroke:ink,'stroke-opacity':.3,'stroke-width':1.4},a);
+   for(const y of [-18,-1,16])svg('line',{x1:-27,y1:y,x2:27,y2:y,stroke:ink,'stroke-opacity':.12,'stroke-width':1},a);
+   for(const x of [-15,2,19])svg('line',{x1:x,y1:-25,x2:x,y2:24,stroke:ink,'stroke-opacity':.12,'stroke-width':1},a);
+   const heights=rising?[11,20,30,40]:[40,30,20,11];
+   for(let i=0;i<4;i++)svg('rect',{x:-26+i*14,y:23-heights[i],width:8,height:heights[i],rx:1.4,fill:ink,'fill-opacity':.35+.09*i},a);
+   svg('path',{d:rising?'M-27 12 L-12 -2 L-1 3 L22 -22':'M-27 -20 L-13 -6 L-1 -11 L22 14',fill:'none',stroke:ink,'stroke-width':3.8,'stroke-linecap':'round','stroke-linejoin':'round'},a);
+   svg('path',{d:rising?'M13 -22 L23 -22 L23 -12':'M13 14 L23 14 L23 4',fill:'none',stroke:ink,'stroke-width':3.8,'stroke-linecap':'round','stroke-linejoin':'round'},a);
+ }
+ function featuresMap(g){
+   // The SAME 40 data points, redrawn against clearly titled continuous axes.
+   const x0=125,x1=851,y0=48,y1=501;
+   svg('rect',{x:16,y:12,width:868,height:548,rx:10,fill:'#fafdfd'},g);
+   for(let t=0;t<=10;t++){
+     const x=x0+(x1-x0)*t/10,y=y0+(y1-y0)*t/10;
+     svg('line',{x1:x,y1:y0,x2:x,y2:y1,stroke:'#dce9ed','stroke-width':1.2},g);
+     svg('line',{x1:x0,y1:y,x2:x1,y2:y,stroke:'#dce9ed','stroke-width':1.2},g);
+   }
+   svg('line',{x1:x0,y1:y1,x2:x1+3,y2:y1,stroke:'#5f8a99','stroke-width':3},g);
+   svg('path',{d:`M${x1+3} ${y1} l-13 -7 v14 Z`,fill:'#5f8a99'},g);
+   svg('line',{x1:x0,y1:y1,x2:x0,y2:y0-6,stroke:'#5f8a99','stroke-width':3},g);
+   svg('path',{d:`M${x0} ${y0-6} l-7 13 h14 Z`,fill:'#5f8a99'},g);
+   mapLabel(g,'AGE',485,557,{size:19,bold:true,color:'#4e7d8f',anchor:'middle'});
+   mapLabel(g,'MATH INTEREST',28,277,{size:18,bold:true,color:'#4e7d8f',anchor:'middle',transform:'rotate(-90 28 277)'});
+   trendIcon(g,76,119,true);
+   mapLabel(g,'HIGH',76,166,{size:15,bold:true,color:'#218766',anchor:'middle'});
+   trendIcon(g,76,404,false);
+   mapLabel(g,'LOW',76,453,{size:15,bold:true,color:'#b55f60',anchor:'middle'});
+   drawAvatar(g,171,537,false);
+   drawAvatar(g,788,537,true);
+ }
+ function initGeometry(){
+   const root=get('geometry-svg');if(!root)return;
+   root.replaceChildren();
+   const back=group(root,{'id':'geom-backgrounds'}),bg0=group(back,{'id':'geom-bg0'}),bg1=group(back,{'id':'geom-bg1'}),bg2=group(back,{'id':'geom-bg2'});
+   [bg0,bg1,bg2].forEach(g=>{g.style.transition='opacity 750ms ease'});
+   torinoMap(bg0);politicalMap(bg1);featuresMap(bg2);
+   state.geometryNodes=[];
+   const nodes=group(root,{'id':'geom-people'});
+   for(let i=0;i<40;i++){
+     const c=svg('g',{'data-person':i},nodes);
+     svg('circle',{cx:0,cy:0,r:8.6,fill:PERSON_COLOR,stroke:'#fff','stroke-width':2.35},c);
+     state.geometryNodes.push(c);
+   }
+   const miniIds=['geom-mini-geography','geom-mini-politics','geom-mini-features'];
+   const sources=[bg0,bg1,bg2];
+   miniIds.forEach((id,idx)=>{
+     const mini=get(id);if(!mini)return;mini.replaceChildren();
+     const bgCopy=sources[idx].cloneNode(true);bgCopy.removeAttribute('id');bgCopy.style.opacity='1';mini.appendChild(bgCopy);
+     const overlay=group(mini);
+     for(const coord of geometryLists[idx]){
+       const p=personXY(idx,coord);
+       svg('circle',{cx:p.x,cy:p.y,r:9.2,fill:PERSON_COLOR,stroke:'#fff','stroke-width':2.7},overlay);
+     }
+   });
+   setGeometry(0,true);
+ }
+ function setGeometry(step,instant=false){
+   const level=Math.min(2,step),root=get('geometry-svg');if(!root)return;
+   state.geometryStep=step;
+   for(let i=0;i<3;i++)get('geom-bg'+i).style.opacity=i===level?'1':'0';
+   const titles=['Where we live','What we believe','What we are interested in'];
+   const descs=['Illustrative individuals on a real map of central Torino: geographic proximity is one possible latent space.','A continuous political-orientation space: distances represent similarity of viewpoints, not membership in invented groups.','Age and mathematics interest define another latent space. Here, low interest is more common.'];
+   const tags=['01 / 03 · GEOGRAPHICAL SPACE','02 / 03 · POLITICAL SPACE','03 / 03 · FEATURE SPACE'];
+   get('geom-heading').textContent=titles[level];get('geom-description').textContent=descs[level];get('geom-scene-tag').textContent=tags[level];
+   if(state.geometryRaf)cancelAnimationFrame(state.geometryRaf);
+   const start=state.geometryNodes.map((g,i)=>({x:Number(g.dataset.x)||geomXY(geographic[i]).x,y:Number(g.dataset.y)||geomXY(geographic[i]).y}));
+   const end=geometryLists[level].map(p=>personXY(level,p)),t0=performance.now(),duration=instant?1:950;
+   const frame=now=>{
+     const t=Math.min(1,(now-t0)/duration),e=1-Math.pow(1-t,3);
+     for(let i=0;i<40;i++){
+       const x=start[i].x+(end[i].x-start[i].x)*e,y=start[i].y+(end[i].y-start[i].y)*e,g=state.geometryNodes[i];
+       g.setAttribute('transform',`translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+       g.dataset.x=x;g.dataset.y=y;
+     }
+     if(t<1)state.geometryRaf=requestAnimationFrame(frame);
+   };
+   state.geometryRaf=requestAnimationFrame(frame);
+ }
+ const WX=52,WY=13,WS=550;
+ function drawTorus(rootId,opt={}){const root=get(rootId),o=state.world;if(!root||!o)return;root.replaceChildren();const points=Model.renderedPos(o),periodic=opt.periodic!==false;const defs=svg('defs',{},root),clip=svg('clipPath',{id:`torus-clip-${rootId}`},defs);svg('rect',{x:WX,y:WY,width:WS,height:WS},clip);svg('rect',{x:WX,y:WY,width:WS,height:WS,rx:2,fill:'#f8fbfc',stroke:'#97b9c1','stroke-width':1.5},root);
+  for(let t=1;t<5;t++){const x=WX+WS*t/5,y=WY+WS*t/5;svg('line',{x1:x,y1:WY,x2:x,y2:WY+WS,stroke:'#e8f1f2','stroke-width':1},root);svg('line',{x1:WX,y1:y,x2:WX+WS,y2:y,stroke:'#e8f1f2','stroke-width':1},root);}
+  const edgeLayer=group(root,{'clip-path':`url(#torus-clip-${rootId})`}),ballLayer=group(root,{'clip-path':`url(#torus-clip-${rootId})`}),nodeLayer=group(root,{'clip-path':`url(#torus-clip-${rootId})`});
+  const comp=Model.components(o);
+  const selected=opt.select?o.plantedSet:null;
+  function drawEdge(u,v,kind){const a=points[u],b=points[v];if(kind==='added'&&opt.showAdded===false)return;const segments=(periodic&&kind!=='added')?torusSegments(a,b):[[a.x,a.y,b.x,b.y]];for(const [x1,y1,x2,y2] of segments){const cn=kind==='added'&&opt.highlightAdded?'net-edge added':'net-edge';svg('line',{x1:WX+x1*WS,y1:WY+y1*WS,x2:WX+x2*WS,y2:WY+y2*WS,class:cn,stroke:kind==='added'&&opt.highlightAdded?'#df8d54':undefined,'stroke-opacity':kind==='added'&&!opt.highlightAdded?.45:undefined},edgeLayer);}}
+  // Draw all natural edges first. Geometric edges crossing the torus are split at borders, never dashed across the interior.
+  if(opt.showEdges!==false){for(const [u,v] of o.base)drawEdge(u,v,'base');if(opt.showAdded!==false)for(const [u,v] of o.added)drawEdge(u,v,'added');}
+  if(opt.showBall&&o.showBall){const q=points[o.selectedBall]||points[0];for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)svg('circle',{cx:WX+(q.x+i)*WS,cy:WY+(q.y+j)*WS,r:o.r*WS,fill:'#5fbcb5', 'fill-opacity':.11,stroke:'#239e9b','stroke-width':2},ballLayer);}
+  for(let i=0;i<points.length;i++){const p=points[i],isSelected=selected?.has(i),color=isSelected?'#de9159':(opt.components&&comp.count>1?palette[comp.labels[i]%palette.length]:'#4b94a4');svg('circle',{cx:WX+p.x*WS,cy:WY+p.y*WS,r:isSelected?(opt.select?5.9:5.4):4.05,fill:color,stroke:isSelected?'#fff':'#e7f3f6','stroke-width':isSelected?1.4:.65,'data-vertex':i},nodeLayer);}
+  return comp;
+ }
+ function updateWorldInfo(){const o=state.world;if(!o)return;const comp=Model.components(o);get('mu-value').textContent='μ = '+o.mu.toFixed(2);get('rgg-N').textContent=String(o.N);get('rgg-components').textContent=String(comp.count);get('rgg-radius').textContent=o.r.toFixed(4);get('mu-slider').value=o.mu.toString();get('rgg-regime').textContent=o.mu<6?'SUB-CONNECTIVITY':o.mu<12?'CONNECTIVITY':'SUPER-CONNECTIVITY';
+   // The illustrative slider is split into equal intervals [0,6], [6,12], [12,18].
+   const lo=100/3,hi=200/3;
+   const bands=get('rgg-regime-scale')?.querySelectorAll('.regime-band');
+   if(bands?.length===3){bands[0].style.width=lo+'%';bands[1].style.left=lo+'%';bands[1].style.width=(hi-lo)+'%';bands[2].style.left=hi+'%';bands[2].style.width=(100-hi)+'%';}
+   const captions=get('rgg-regime-scale')?.querySelectorAll('.regime-captions span');
+   if(captions?.length===3){captions[0].style.width=lo+'%';captions[1].style.left=lo+'%';captions[1].style.width=(hi-lo)+'%';captions[2].style.left=hi+'%';captions[2].style.width=(100-hi)+'%';}}
+ function renderRgg(){const o=state.world,step=Number(get('slide').dataset.step);drawTorus('rgg-svg',{showAdded:false,showEdges:step>=1,showBall:step>=1});updateWorldInfo();}
+ function renderPlant(){const step=Number(get('slide').dataset.step),o=state.world,annotate=typeof o.plantOverride==='boolean'?o.plantOverride:(step===1||step===2),showAdded=step>=2;
+  drawTorus('plant-svg',{showAdded,select:annotate,highlightAdded:annotate&&showAdded});get('plant-step-label').textContent=['ORIGINAL RGG','SELECT K','ADD THE MISSING EDGES','OBSERVED PLANTED GRAPH'][step];get('k-slider-label').textContent='k = '+o.k;get('k-slider').value=o.k;}
+ function edgeLayersForRecovery(root,positions,edgeType,opacity){const layer=group(root,{opacity,'data-edge-layout':edgeType});const o=state.world;for(const [u,v] of o.allEdges){const a=positions[u],b=positions[v];const added=o.addedSet?.has(key(u,v)) ?? o.added.some(([x,y])=>key(x,y)===key(u,v));const segments=edgeType==='torus'&&!added?torusSegments(a,b):[[a.x,a.y,b.x,b.y]];for(const [x1,y1,x2,y2] of segments)svg('line',{x1:WX+x1*WS,y1:WY+y1*WS,x2:WX+x2*WS,y2:WY+y2*WS,class:'net-edge'},layer);}return layer;}
+ function updateRecoveryText(mode,step){
+   get('rec-layout-caption').textContent=mode===0?'LATENT GEOMETRY · NOT OBSERVABLE':'KAMADA–KAWAI · GRAPH ONLY';
+   const heading=get('rec-state-heading'),desc=get('rec-state-description');
+   get('rec-question').querySelector('small').textContent=mode===0?'GENERATIVE VIEW':'OBSERVED GRAPH';
+   get('rec-legend-planted').textContent=mode===0?'Planted group (only shown for explanation)':'Planted set (hidden from the observer)';
+   if(step===4){
+     heading.textContent='Which graph statistics reveal the hidden clique?';
+     desc.textContent='The observed graph contains geometric dependencies and non-geometric planted edges. Next: vertex degrees and common neighbors.';
+   }else if(mode===0){
+     heading.textContent='The latent geometric model generates the edges.';
+     desc.textContent='The positions explain natural connections. Orange marks the planted set, shown only for illustration.';
+   }else{
+     heading.textContent='But we observe only the graph topology.';
+     desc.textContent='Kamada–Kawai uses adjacency alone: this drawing does not reconstruct the hidden coordinates.';
+   }
+ }
+ function drawRecovery(progress,step){const root=get('recovery-svg'),o=state.world;if(!root||!o)return;root.replaceChildren();const latent=Model.renderedPos(o),layout=Model.kkLayout(o);const x0=latent.map(p=>({x:p.x,y:p.y})),p=clamp(progress,0,1);svg('rect',{x:WX,y:WY,width:WS,height:WS,fill:'#f8fbfc',stroke:'#a8c1c9','stroke-width':1.2},root);if(p<1){const edgesGeo=edgeLayersForRecovery(root,x0,'torus',Math.max(0,1-p));edgesGeo.setAttribute('stroke-opacity',.4);}if(p>0){const edgesKK=edgeLayersForRecovery(root,layout,'kk',p);edgesKK.setAttribute('stroke-opacity',.4);}
+  const dots=group(root);for(let i=0;i<o.N;i++){const a=x0[i],b=layout[i],x=a.x*(1-p)+b.x*p,y=a.y*(1-p)+b.y*p,selected=step===0&&p<.35&&o.plantedSet.has(i);svg('circle',{cx:WX+x*WS,cy:WY+y*WS,r:selected?5.0:3.9,fill:selected?'#e09660':'#468fa2',stroke:'#f5faf9','stroke-width':selected?1.4:.6},dots);}svg('text',{x:WX+WS/2,y:582,'text-anchor':'middle',class:'torus-label'},root).textContent=p>.5?'Kamada–Kawai layout · coordinates from adjacency':'Latent toroidal positions · unavailable to the algorithm';}
+ function changeRecovery(target,step,instant=false){if(state.recRaf)cancelAnimationFrame(state.recRaf);const start=state.recMode,finish=target;state.recAnimating=!instant;const t0=performance.now(),dur=instant?1:1050;const frame=now=>{const u=Math.min(1,(now-t0)/dur),t=1-Math.pow(1-u,3),value=start+(finish-start)*t;drawRecovery(value,step);if(u<1){state.recRaf=requestAnimationFrame(frame);}else{state.recMode=finish;state.recAnimating=false;}};state.recRaf=requestAnimationFrame(frame);state.recMode=target;updateRecoveryText(target,step);}
+ function renderRecovery(context){const step=Number(get('slide').dataset.step),desired=state.recOverride!==null?state.recOverride:(step===0?0:1),oldPage=context?.oldPage,oldStep=context?.oldStep,enterFromPlant=oldPage===9;const instant=!(oldPage===10||enterFromPlant)&&step>=1;changeRecovery(desired,step,instant);}
+ function dragSurface(rootId,redraw){const el=get(rootId);if(!el)return;let start=null,moved=false;el.addEventListener('pointerdown',e=>{if(e.button!==0)return;start={x:e.clientX,y:e.clientY,offsetX:state.world.offset.x,offsetY:state.world.offset.y};moved=false;el.setPointerCapture?.(e.pointerId);});el.addEventListener('pointermove',e=>{if(!start)return;const rect=el.getBoundingClientRect();const dx=(e.clientX-start.x)/(rect.height||1),dy=(e.clientY-start.y)/(rect.height||1);if(Math.hypot(dx,dy)>.005)moved=true;state.world.offset.x=mod(start.offsetX+dx);state.world.offset.y=mod(start.offsetY+dy);if(!state.renderRequested){state.renderRequested=true;requestAnimationFrame(()=>{state.renderRequested=false;redraw();});}});el.addEventListener('pointerup',e=>{if(!start)return;if(!moved && rootId==='rgg-svg'){const t=e.target.closest('[data-vertex]');if(t){state.world.selectedBall=Number(t.getAttribute('data-vertex'));state.world.showBall=true;renderRgg();}}start=null;});el.addEventListener('pointercancel',()=>{start=null;});}
+ function initControls(){get('mu-slider').addEventListener('input',e=>{const next=Math.min(18,Math.max(0,Number(e.target.value)));state.world.mu=next;Model.rebuildRGG(state.world);Model.choosePlanted(state.world);renderRgg();});get('k-slider').addEventListener('input',e=>{state.world.k=Number(e.target.value);Model.choosePlanted(state.world);renderPlant();});dragSurface('rgg-svg',renderRgg);dragSurface('plant-svg',renderPlant);}
+ function enter(page,context={}){if(page===1)renderCover();if(page===2)renderHidden();if(page===4)renderER();if(page===7)setGeometry(context.step,false);if(page===8)renderRgg();if(page===9){if(context.oldPage!==9||context.oldStep!==context.step)state.world.plantOverride=null;renderPlant();}if(page===10){if(context.oldPage!==10)state.recOverride=null;else if(context.oldStep!==context.step)state.recOverride=null;renderRecovery(context);}}
+ function leave(page){if(page===1)state.cover?.stop();if(page===7&&state.geometryRaf)cancelAnimationFrame(state.geometryRaf);if(page===10&&state.recRaf)cancelAnimationFrame(state.recRaf);}
+ function trigger(page){if(page===1){flashCover();return;}if(page===8){state.world.showBall=!state.world.showBall;renderRgg();return;}if(page===9){const o=state.world,step=Number(get('slide').dataset.step),def=step===1||step===2;o.plantOverride=typeof o.plantOverride==='boolean'?!o.plantOverride:!def;renderPlant();return;}if(page===10){state.recOverride=state.recMode===1?0:1;changeRecovery(state.recOverride,Number(get('slide').dataset.step),false);return;}}
+ function reroll(page){
+   if(page===1){state.coverSeed+=947;state.cover?.reseed(state.coverSeed);renderCover();}
+   if(page===2){state.hiddenSeed+=977;state.hidden=Model.makeHidden(state.hiddenSeed);state.pair=Model.makePair(state.hiddenSeed^0xa82);renderHidden();}
+   if(page===4){state.erSeed+=1069;state.er=Model.generateER(state.erSeed);renderER();}
+   if([8,9,10].includes(page)){
+     const old=state.world;
+     state.seed+=1687;
+     const mu=page===8?1.2*Math.log(old.meanN):old.mu;
+     state.world=Model.makeRGG(state.seed,mu,old.meanN,old.k);
+     if(page===8)renderRgg();
+     if(page===9){state.world.plantOverride=null;renderPlant();}
+     if(page===10){state.recMode=0;state.recOverride=null;renderRecovery({oldPage:0,oldStep:0,step:Number(get('slide').dataset.step)});}
+   }
+ }
+ function pause(value){state.paused=!!value;state.cover?.setPaused(state.paused);}
+ return{init:start,enter,leave,trigger,reroll,pause,state};
+})();

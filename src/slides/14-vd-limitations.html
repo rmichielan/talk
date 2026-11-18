@@ -1,0 +1,37 @@
+<section class="stage s15" data-slide="15" data-step="0" aria-label="Degree algorithm limitations">
+ <div class="line-label">IV. VERTEX DEGREE</div>
+ <header class="top"><h2>When degrees are not enough</h2></header>
+ <div class="vd15-main">
+  <article class="vd15-left vd-card"><div class="vd-panel-heading"><strong id="vd15-left-heading">NETWORK</strong><span id="vd15-graph-status">PLANTED</span></div>
+    <div class="vd15-swap">
+      <svg id="vd15-graph" class="vd15-graph-view" viewBox="0 0 610 548" aria-label="Observed network with planted clique"></svg>
+      <div class="vd15-regime-view" aria-label="Qualitative Vertex Degree recovery regions">
+       <div class="vd15-v29-figure">
+        <div class="vd15-v29-regimes"><span>SUB-CONNECTIVITY</span><span>CONNECTIVITY</span><span>SUPER-CONNECTIVITY</span></div>
+        <div class="vd15-v29-row">
+         <div class="vd15-v29-y">k (log-scale)</div>
+         <div class="vd15-v29-plot">
+          <img class="vd15-v29-region" data-asset="src/assets/qualitative/qualitative-vd-v3-full.svg" alt="Qualitative Vertex Degree regions: green recovery, beige no guarantee, red proven failure, and two gray transition bands" />
+          <svg id="vd15-figure" class="vd15-v29-overlay" viewBox="62 32 678 330" role="img" aria-label="Selected simulation parameters on the schematic recovery diagram">
+           <g id="vd15-marker" class="vd-regime-marker" aria-label="Illustrative position of the simulation parameters" style="display:none"><circle id="vd15-ring" cx="400" cy="250" r="13" fill="#fff" opacity=".96" stroke="#205778" stroke-width="3.4"/><circle id="vd15-dot" cx="400" cy="250" r="6.0" fill="#205778"/></g>
+          </svg>
+         </div>
+        </div>
+        <div class="vd15-v29-x">μ (log-scale)</div>
+        <div class="vd15-v29-legend" aria-label="Qualitative recovery legend">
+         <span><i class="vd15-v29-swatch good"></i>Guaranteed recovery</span><span><i class="vd15-v29-swatch unknown"></i>No theorem</span><span><i class="vd15-v29-swatch bad"></i>VD failure</span><span><i class="vd15-v29-swatch transition"></i>Regime change</span>
+        </div>
+        <div class="vd15-v29-note">Schematic regimes · not finite-n thresholds</div>
+       </div>
+      </div>
+    </div>
+  </article>
+  <article class="vd15-right vd-card"><div class="vd-panel-heading"><strong>VERTICES SORTED BY DEGREE</strong><span id="vd15-ranking-status">10 / 10 RECOVERED</span></div><svg id="vd15-bars" viewBox="0 0 780 548" aria-label="Degree ranking with original blue bars and orange planting increments"></svg></article>
+ </div>
+ <div class="vd15-bottom">
+  <div class="vd15-control"><label for="vd-mu-slider">Mean degree <span class="tex" data-math="\mu"></span></label><output id="vd-mu-value">4.5</output><input id="vd-mu-slider" type="range" min="0.5" max="19" step="0.1" value="4.5" /></div>
+  <div class="vd15-control"><label for="vd-k-slider">Clique size <span class="tex" data-math="k"></span></label><output id="vd-k-value">10</output><input id="vd-k-slider" type="range" min="2" max="10" step="1" value="10" /></div>
+  <div class="vd15-result" id="vd15-status"><b>EXACT RECOVERY</b><span id="vd15-result-detail">10 / 10 planted vertices in the top k</span></div>
+ </div>
+ <div class="foot"><strong>15</strong> / VERTEX DEGREE</div>
+</section>

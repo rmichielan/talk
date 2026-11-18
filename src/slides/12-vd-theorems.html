@@ -1,0 +1,41 @@
+<section class="stage s13" data-slide="13" data-step="0" aria-label="Vertex Degree recovery guarantees">
+ <div class="line-label">IV. VERTEX DEGREE</div>
+ <header class="top"><h2>Recovery guarantees for VD</h2></header>
+ <div class="vd13-main">
+  <article class="vd13-definitions vd-card" aria-label="Definition of the auxiliary sequences T(n) and t(n)">
+   <div class="vd-panel-heading"><strong>DEFINITION</strong><span>ASYMPTOTIC SCALES</span></div>
+   <div class="vd13-alpha-feature"><span class="tex" data-math="\alpha=\lim_{n\to\infty}\frac{\mu}{\log n}"></span></div>
+   <div class="vd13-def-block vd13-t-block">
+    <div class="vd13-formula-cases"><span class="tex vd13-formula-lead" data-math="T(n)="></span><div class="vd13-brace">{</div><div class="vd13-case-list"><div class="vd13-case-row"><span class="tex" data-math="\dfrac{\log n}{\log(\log n/\mu)}"></span><span class="tex" data-math="\alpha=0"></span></div><div class="vd13-case-row"><span class="tex" data-math="\mu H_+^{-1}(\alpha^{-1})"></span><span class="tex" data-math="0<\alpha\le\infty"></span></div></div></div>
+   </div>
+   <div class="vd13-def-block vd13-tlower-block">
+    <div class="vd13-formula-cases"><span class="tex vd13-formula-lead" data-math="t(n)="></span><div class="vd13-brace">{</div><div class="vd13-case-list"><div class="vd13-case-row"><span class="tex" data-math="0"></span><span class="tex" data-math="0\le\alpha\le1"></span></div><div class="vd13-case-row"><span class="tex" data-math="\mu H_-^{-1}(\alpha^{-1})"></span><span class="tex" data-math="1<\alpha\le\infty"></span></div></div></div>
+   </div>
+   <div class="vd13-function"><span class="tex" data-math="H(x)=1-x+x\log x"></span><span><span class="tex" data-math="H_{\pm}^{-1}"></span> denote its inverse branches.</span></div>
+  </article>
+  <div class="vd13-right">
+   <article class="vd13-theorem-card vd13-positive">
+    <div class="vd13-theorem-eyebrow"><b>THEOREM 3.1</b><span>POSITIVE RESULT</span></div>
+    <p>Vertex Degree achieves <b>exact recovery w.h.p.</b> if, for any <span class="tex" data-math="\varepsilon>0"></span>,</p>
+    <div class="vd13-conditions"><div><span class="tex" data-math="0\le\alpha<\infty"></span><span class="tex" data-math="k>(1+\varepsilon)(T(n)-t(n))"></span></div><div><span class="tex" data-math="\alpha=\infty"></span><span class="tex" data-math="k>\varepsilon\mu"></span></div></div>
+   </article>
+   <article class="vd13-theorem-card vd13-negative">
+    <div class="vd13-theorem-eyebrow"><b>THEOREM 3.2</b><span>NEGATIVE RESULT</span></div>
+    <p>Vertex Degree <b>fails w.h.p.</b> if either</p>
+    <div class="vd13-conditions"><div><span class="tex" data-math="0<\alpha<\infty,\ \ 0<\varepsilon<1"></span><span class="tex" data-math="k\le(1-\varepsilon)(T(n)-\mu)"></span></div><div><span class="tex" data-math="\alpha=\infty,\ \mu=o(n)"></span><span class="tex" data-math="k=o(\sqrt\mu)"></span></div></div>
+   </article>
+   <article class="vd13-summary">
+    <div class="vd13-summary-cases" aria-label="Recovery and failure by sub-connectivity, connectivity, and super-connectivity regimes">
+     <div class="vd13-summary-header"><span></span><span>SUB-CONNECTIVITY</span><span>CONNECTIVITY</span><span>SUPER-CONNECTIVITY</span></div>
+     <div class="vd13-summary-record good"><b>RECOVERY</b><div class="vd13-summary-formula vd13-span2"><span class="tex" data-math="k>(1+\varepsilon)(T(n)-t(n))"></span></div><div class="vd13-summary-formula"><span class="tex" data-math="k>\varepsilon\mu"></span></div></div>
+     <div class="vd13-summary-record bad"><b>FAILURE</b><div class="vd13-summary-formula muted">—</div><div class="vd13-summary-formula"><span class="tex" data-math="k\le(1-\varepsilon)(T(n)-\mu)"></span></div><div class="vd13-summary-formula"><span class="tex" data-math="k=o(\sqrt\mu)"></span></div></div>
+    </div>
+    <div class="q27-full-diagram q27-vd-full" aria-label="Vertex Degree qualitative regions">
+  <div class="q27-plot-row"><div class="q27-y-axis"><b>k (log-scale)</b></div><img class="q27-plot-image" data-asset="src/assets/qualitative/qualitative-vd-v3-full.svg" alt="Qualitative Vertex Degree diagram with green, beige, and red regions and two gray transition bands" /></div>
+  <div class="q27-x-axis">&mu; (log-scale)</div>
+  <div class="q27-legend" aria-label="Qualitative region legend"><span><i class="q27-swatch good"></i>Guaranteed recovery</span><span><i class="q27-swatch unknown"></i>No theorem</span><span><i class="q27-swatch bad"></i>VD failure</span><span><i class="q27-swatch transition"></i>Regime change</span></div></div>
+   </article>
+  </div>
+ </div>
+ <div class="foot"><strong>13</strong> / VERTEX DEGREE</div>
+</section>
