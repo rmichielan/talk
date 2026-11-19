@@ -612,3 +612,35 @@
 .s15 .vd15-v29-swatch {display:inline-block;flex:none;width:12px;height:11px;border-radius:2px}
 .s15 .vd15-v29-swatch.good {background:#A7D8B9}.s15 .vd15-v29-swatch.unknown {background:#FFD39E}.s15 .vd15-v29-swatch.bad {background:#F1A29A}.s15 .vd15-v29-swatch.transition {background:#85919C}
 .s15 .vd15-v29-note {padding-left:29px;margin-top:11px;text-align:center;font:600 11px 'Segoe UI',Arial,sans-serif;color:#748d98}
+
+
+/* v31: presenter-wide, non-overlapping page transitions.
+   Opaque wipe hides the entire canvas before changing the visible stage. */
+.stage {transition:none !important;}
+.stage:not(.is-active) {opacity:0 !important;visibility:hidden !important;pointer-events:none !important;}
+.stage.is-active {opacity:1 !important;visibility:visible !important;}
+#deck-transition-veil {
+  position:absolute;inset:0;z-index:120;visibility:hidden;pointer-events:none;
+  clip-path:inset(0 100% 0 0);
+  background:linear-gradient(128deg,#eef6f7 0%,#f4f8fa 55%,#e4f1f3 100%);
+  box-shadow:inset -4px 0 0 #4babb526;
+  will-change:clip-path;
+}
+#deck-transition-veil.dark {background:linear-gradient(128deg,#091827,#123044 65%,#0b2031);}
+@media(prefers-reduced-motion:reduce) {#deck-transition-veil {display:none !important;}}
+
+/* Slides 4/9: only show the labels that are meaningful in the current step. */
+.s4 .edge-legend-unlabeled,.s9 .edge-legend-unlabeled {display:none;}
+.s4[data-step="3"] .edge-legend-normal,.s9[data-step="3"] .edge-legend-normal {display:none;}
+.s4[data-step="3"] .edge-legend-unlabeled,.s9[data-step="3"] .edge-legend-unlabeled {display:inline;}
+.s4[data-step="3"] .graph-legend>span:nth-child(2),
+.s9[data-step="3"] .plant-legend>span:nth-child(2) {display:none;}
+
+/* Both sets of references: readable on a lecture-room projection. */
+.s5 .history-references a {font-size:17.1px;line-height:1.20;}
+.s6 .history-references.gap-references a {font-size:16.2px;line-height:1.21;}
+
+/* CN guarantees: A/B/C and formulas are the visual headings; no redundant prose titles. */
+.s18 .cn18-condition-head {min-height:32px;margin-bottom:4px;}
+.s18[data-step="3"] .cn18-condition {padding-top:7px;padding-bottom:7px;}
+.s18[data-step="3"] .cn18-condition-head {min-height:31px;height:31px;}

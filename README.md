@@ -1,12 +1,12 @@
 # Planted Clique Recovery in Random Geometric Graphs
 
-**Scientific presentation · 25 slides · HTML / CSS / JavaScript · v30 source refactor (based on v29)**
+**Scientific presentation · 25 slides · HTML / CSS / JavaScript · v31 (based on the v30 refactor)**
 
-The compiled `index.html` is **byte-for-byte identical to v29**. Slides, reveal steps, mathematics, embedded experiments, graph simulations, transitions, presenter controls, assets and responsive layout are unchanged. Only the editable repository structure and documentation have been streamlined.
+The v30 refactor preserved the v29 HTML byte for byte. Version **v31** introduces focused presentation changes: a non-overlapping page-transition wipe, offline fallback for the Torino background, small bibliography improvements, corrected edge legends, and streamlined headings on slides 17–18. The simulation algorithms and approved experiment datasets are unchanged.
 
 ## Present the talk
 
-Open **`index.html`** directly in Chrome, Firefox or Edge. No server, JavaScript installation or compilation is needed. The presentation is self-contained except for the Torino map on slide 7 (online imagery) and external hyperlinks.
+Open **`index.html`** directly in Chrome, Firefox or Edge. No server, JavaScript installation or compilation is needed. The presentation works offline, including an embedded schematic city-grid background for slide 7. When internet is available, the authentic Torino cartographic image can replace that schematic; links to external papers still require connectivity.
 
 - `→` or `Space`: advance; `←`: return to previous moment or slide.
 - Click the bottom-right slide counter to jump by number (`Enter`), or close with `Esc`.

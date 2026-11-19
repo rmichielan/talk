@@ -1,5 +1,47 @@
 // General, reveal-aware slide navigation. Talk-specific behavior is injected through TalkFeatures.
+  // Page changes are handled by a full-opacity wipe, never a crossfade of two
+  // text-heavy slides. Reveals *within* a slide retain their existing timing.
+  const transitionVeil = document.createElement('div');
+  transitionVeil.id = 'deck-transition-veil';
+  transitionVeil.setAttribute('aria-hidden', 'true');
+  $('#slide').appendChild(transitionVeil);
+  let transitionBusy = false;
+  let deckInitialized = false;
   function go(page, nextStep = 0) {
+    const destination = clamp(page, 1, slideCount);
+    const finalStep = clamp(nextStep, 0, slideMeta(destination).reveals);
+    if (transitionBusy) return;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (deckInitialized && destination !== slide && !reducedMotion) {
+      transitionBusy = true;
+      transitionVeil.classList.toggle('dark', destination === 1 || destination === 25);
+      transitionVeil.style.visibility = 'visible';
+      transitionVeil.style.pointerEvents = 'auto';
+      const close = transitionVeil.animate([
+        {clipPath:'inset(0 100% 0 0)'},
+        {clipPath:'inset(0 0 0 0)'}
+      ],{duration:235,easing:'cubic-bezier(.42,0,.25,1)',fill:'forwards'});
+      close.finished.then(() => {
+        // When the curtain is fully opaque, swap the stage. Nothing from the
+        // previous slide can show through while the new slide is being drawn.
+        commitGo(destination, finalStep);
+        const open = transitionVeil.animate([
+          {clipPath:'inset(0 0 0 0)'},
+          {clipPath:'inset(0 0 0 100%)'}
+        ],{duration:310,easing:'cubic-bezier(.22,.7,.2,1)',fill:'forwards'});
+        return open.finished;
+      }).catch(() => {}).finally(() => {
+        transitionVeil.getAnimations().forEach(a=>a.cancel());
+        transitionVeil.style.visibility = 'hidden';
+        transitionVeil.style.pointerEvents = 'none';
+        transitionBusy = false;
+      });
+      return;
+    }
+    commitGo(destination, finalStep);
+    deckInitialized = true;
+  }
+  function commitGo(page, nextStep = 0) {
     if (typeof closeSlideJump === "function") closeSlideJump(false);
     if(AsideNav.active) AsideNav.close(false);
     TalkFeatures.stopAnimations?.();

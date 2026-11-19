@@ -83,22 +83,63 @@ const DeckScenes=(()=>{
  const PERSON_COLOR='#287f91';
  function geomXY(p){return {x:45+p[0]*792,y:40+p[1]*475};}
  function mapLabel(g,text,x,y,opts={}){const t=svg('text',{x,y,fill:opts.color||'#60838a','font-size':opts.size||13,'font-weight':opts.bold?750:550,'letter-spacing':opts.spacing||'.02em','text-anchor':opts.anchor||'start',opacity:opts.opacity??1,transform:opts.transform},g);t.textContent=text;return t;}
+ function torinoFallback(frame) {
+   // Entirely self-contained, explicitly *schematic* urban grid. It is NOT a
+   // reconstructed OSM map: if the original image is inaccessible, this layer
+   // still makes the geographical-space explanation legible offline.
+   const fallback=svg('g',{'data-map-fallback':'true',opacity:1},frame);
+   svg('rect',{x:0,y:0,width:1653,height:1590,fill:'#edf4f1'},fallback);
+   // Muted neighborhoods and a small green park network.
+   const parks=[[530,620,128,116],[900,570,124,143],[645,825,90,115],[1010,856,140,91],
+     [800,1070,130,88],[1140,595,82,116],[440,920,120,110],[1250,930,110,130]];
+   for(const [x,y,w,h] of parks)
+     svg('rect',{x,y,width:w,height:h,rx:12,fill:'#d8e6dc',opacity:.85},fallback);
+   // Streets form a consistent abstract city-grid backdrop, not named streets.
+   for(let i=0;i<=34;i++){
+     const x=150+i*40;
+     svg('path',{d:`M${x} 0 L${x+55} 1590`,fill:'none',stroke:'#b9cbd0','stroke-width':i%4===0?3.5:1.65,opacity:i%4===0?.72:.58},fallback);
+   }
+   for(let i=0;i<=39;i++){
+     const y=68+i*37;
+     svg('path',{d:`M0 ${y+20} L1653 ${y-75}`,fill:'none',stroke:'#b9cbd0','stroke-width':i%5===0?3.5:1.55,opacity:i%5===0?.72:.56},fallback);
+   }
+   for(const d of ['M50 1320 Q410 1050 815 930 T1620 390',
+                   'M100 150 Q360 445 700 555 T1640 740',
+                   'M120 1040 Q610 700 920 310 T1450 40'])
+     svg('path',{d,fill:'none',stroke:'#a9c0c6','stroke-width':7,opacity:.58},fallback);
+   // A winding river provides a geographic cue, but is intentionally not to scale.
+   svg('path',{d:'M1320 -30 C1260 175 1370 330 1280 475 S1260 750 1140 920 S1090 1230 940 1650',
+     fill:'none',stroke:'#acd4da','stroke-width':43,'stroke-linecap':'round',opacity:.63},fallback);
+   svg('path',{d:'M1320 -30 C1260 175 1370 330 1280 475 S1260 750 1140 920 S1090 1230 940 1650',
+     fill:'none',stroke:'#daeff0','stroke-width':22,'stroke-linecap':'round',opacity:.83},fallback);
+   return fallback;
+ }
  function torinoMap(g){
-   // One cartographic layer only. The handmade street-grid illustration from
-   // the early mockup has been entirely removed (not hidden under the map).
    const mapX=16,mapY=12,mapW=868,mapH=548;
    svg('rect',{x:mapX,y:mapY,width:mapW,height:mapH,rx:10,fill:'#f8fafb'},g);
-   // Real street map of Torino, © OpenStreetMap contributors / Flappiefh,
-   // CC BY-SA 3.0; clipped to the central districts and river Po.
-   // Muted on purpose: individual vertices are the foreground information.
-   // If offline, only the neutral background appears; never a fake street map.
    const frame=svg('svg',{x:mapX,y:mapY,width:mapW,height:mapH,
-      viewBox:'480 545 690 438',preserveAspectRatio:'xMidYMid slice'},g);
-   svg('image',{
+     viewBox:'480 545 690 438',preserveAspectRatio:'xMidYMid slice'},g);
+   torinoFallback(frame);
+   const photo=svg('image',{
+     'data-map-online':'true',
      href:'https://upload.wikimedia.org/wikipedia/commons/0/0e/Location_map_Italy_Torino.jpg',
-     x:0,y:0,width:1653,height:1590,opacity:.62,
+     x:0,y:0,width:1653,height:1590,opacity:0,
      preserveAspectRatio:'none'
    },frame);
+   photo.addEventListener('load',()=>{
+     state.torinoMapOnline=true;
+     document.querySelectorAll('[data-map-fallback]').forEach(el=>el.setAttribute('opacity','0'));
+     document.querySelectorAll('[data-map-online]').forEach(el=>el.setAttribute('opacity','.62'));
+     const credit=get('geom-image-credit');
+     if(credit)credit.textContent='Street map: © OpenStreetMap contributors · CC BY-SA 3.0 · Positions illustrative';
+     if(state.geometryStep===0){const desc=get('geom-description');if(desc)desc.textContent='Illustrative individuals on a real map of central Torino: geographic proximity is one possible latent space.';}
+   });
+   photo.addEventListener('error',()=>{
+     state.torinoMapOnline=false;
+     photo.setAttribute('opacity','0');
+     const credit=get('geom-image-credit');
+     if(credit)credit.textContent='Offline schematic city grid · Not a cartographic street map · Positions illustrative';
+   });
    svg('rect',{x:mapX,y:mapY,width:mapW,height:mapH,rx:10,
       fill:'none',stroke:'#dce7eb','stroke-width':1.4,'pointer-events':'none'},g);
  }
@@ -223,7 +264,7 @@ const DeckScenes=(()=>{
    state.geometryStep=step;
    for(let i=0;i<3;i++)get('geom-bg'+i).style.opacity=i===level?'1':'0';
    const titles=['Where we live','What we believe','What we are interested in'];
-   const descs=['Illustrative individuals on a real map of central Torino: geographic proximity is one possible latent space.','A continuous political-orientation space: distances represent similarity of viewpoints, not membership in invented groups.','Age and mathematics interest define another latent space. Here, low interest is more common.'];
+   const descs=[state.torinoMapOnline?'Illustrative individuals on a real map of central Torino: geographic proximity is one possible latent space.':'Illustrative positions on a schematic urban grid inspired by Torino: geographic proximity is one possible latent space.','A continuous political-orientation space: distances represent similarity of viewpoints, not membership in invented groups.','Age and mathematics interest define another latent space. Here, low interest is more common.'];
    const tags=['01 / 03 · GEOGRAPHICAL SPACE','02 / 03 · POLITICAL SPACE','03 / 03 · FEATURE SPACE'];
    get('geom-heading').textContent=titles[level];get('geom-description').textContent=descs[level];get('geom-scene-tag').textContent=tags[level];
    if(state.geometryRaf)cancelAnimationFrame(state.geometryRaf);
