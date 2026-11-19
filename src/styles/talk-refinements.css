@@ -780,3 +780,26 @@ html.deck-transition-backwards::view-transition-new(talk-slide-frame) {animation
 /* Slide 22: typography and centered vertical axes match slides 13/18. */
 .s22 .q27-mini-y{font:700 19px 'Segoe UI',Arial,sans-serif;color:#3d6479;writing-mode:vertical-rl;transform:rotate(180deg)}
 .s22 .con22-axes{font:700 19px 'Segoe UI',Arial,sans-serif;color:#3d6479;margin-top:8px;text-align:center}
+
+
+/* v37: consistent horizontal k labels on qualitative plot y-axes. */
+.s13 .q27-vd-full .q27-y-axis>b {
+  left:50%;right:auto;top:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font:700 19px 'Segoe UI',Arial,sans-serif;
+}
+.s13 .q27-vd-full .q27-y-axis>b small {
+  color:#648394;font:600 11px 'Segoe UI',Arial,sans-serif;white-space:nowrap;
+}
+.s15 .vd15-v29-y,.s22 .q27-mini-y {writing-mode:horizontal-tb;transform:none}
+.s18 .q27-cn-full .q27-y-axis>b {
+  left:50%;right:auto;top:50%;transform:translate(-50%,-50%);
+}
+/* Slide 6: shrink the central graphic slightly and give bibliography/footer room. */
+.s6 .gap-big {top:270px;height:410px;padding:17px 28px}
+.s6 .gap-note {top:696px}
+.s6 .history-references.gap-references {top:750px}
+/* Slide 13: explain H inline, without making the definition card taller. */
+.s13 .vd13-h-line {display:flex;align-items:center;gap:12px;min-width:0}
+.s13 .vd13-h-line>.tex {font-size:21px;flex:none}
+.s13 .vd13-h-definition {font:650 13.5px/1.2 'Segoe UI',Arial,sans-serif;color:#547687;white-space:nowrap}
