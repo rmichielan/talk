@@ -584,7 +584,7 @@
 /* Alpha labels: the middle marker exactly intersects the minimum-degree divider. */
 .s14 .vd14-alpha-rail {display:block;height:319px}
 .s14 .vd14-alpha-rail>span {position:absolute;left:24px}
-.s14 .vd14-alpha-rail>span:nth-child(1) {top:17px}
+.s14 .vd14-alpha-rail>span:nth-child(1) {top:39px}
 .s14 .vd14-alpha-rail>span:nth-child(2) {top:149px}
 .s14 .vd14-alpha-rail>span:nth-child(3) {bottom:16px}
 /* Maximum: give the finite-alpha formula room by lowering the divider. */
@@ -703,3 +703,62 @@ html.deck-transition-backwards::view-transition-new(talk-slide-frame) {animation
  #deck-frame {view-transition-name:none;}
  ::view-transition-group(talk-slide-frame),::view-transition-old(talk-slide-frame),::view-transition-new(talk-slide-frame){animation:none !important;}
 }
+
+/* Final polish (v35): theorem states without phantom title rows.
+   The three expanded states use a balanced four-row grid; the summary uses
+   a compact side badge so the mathematical content retains its vertical room. */
+.s17 .cn17-algorithm .vd-algo-complexity{justify-content:flex-start;gap:22px}
+.s17 .cn17-algorithm .vd-algo-complexity .tex{font-size:24px}
+
+.s18:not([data-step="3"]) .cn18-conditions{height:416px}
+.s18:not([data-step="3"]) .cn18-condition{
+  box-sizing:border-box;grid-template-rows:46px minmax(76px,1fr) 42px 60px;
+  align-items:center;row-gap:10px;margin-top:25px;padding:20px 26px;
+  min-height:330px;height:330px;justify-content:initial;
+}
+.s18[data-step="0"] .cn18-a,.s18[data-step="1"] .cn18-b,.s18[data-step="2"] .cn18-c{display:grid}
+.s18:not([data-step="3"]) .cn18-condition-head{height:46px;min-height:46px;margin:0;align-items:center}
+.s18:not([data-step="3"]) .cn-letter{width:43px;height:43px;font-size:26px}
+.s18:not([data-step="3"]) .cn18-formula{min-height:0;height:auto;max-width:100%;display:flex;align-items:center;justify-content:center}
+.s18:not([data-step="3"]) .cn18-formula .tex{font-size:29px}
+.s18:not([data-step="3"]) .cn18-formula-long .tex{font-size:27px}
+.s18:not([data-step="3"]) .cn18-assumption{padding:0;display:flex;justify-content:center;align-items:center;min-height:0}
+.s18:not([data-step="3"]) .cn18-assumption .tex{font-size:23px}
+.s18:not([data-step="3"]) .cn18-interpretation{font-size:19px;line-height:1.3;margin:0;align-self:center}
+
+.s18[data-step="3"] .cn18-conditions{height:473px}
+.s18[data-step="3"] .cn18-condition{
+  box-sizing:border-box;display:grid;grid-template-columns:46px minmax(0,1fr);
+  grid-template-rows:70px 30px;align-items:center;column-gap:8px;row-gap:5px;
+  min-height:145px;height:145px;margin-top:9px;padding:13px 17px;
+}
+.s18[data-step="3"] .cn18-condition-head{
+  grid-column:1;grid-row:1 / span 2;align-self:center;justify-self:center;
+  height:43px;min-height:43px;margin:0;
+}
+.s18[data-step="3"] .cn-letter{width:40px;height:40px;font-size:24px}
+.s18[data-step="3"] .cn18-formula{
+  grid-column:2;grid-row:1;height:70px;min-height:70px;
+  display:flex;align-items:center;justify-content:center;min-width:0;
+}
+.s18[data-step="3"] .cn18-formula .tex{font-size:24px}
+.s18[data-step="3"] .cn18-assumption{
+  grid-column:2;grid-row:2;height:30px;min-height:30px;
+  display:flex;align-items:center;justify-content:center;padding:0;
+}
+.s18[data-step="3"] .cn18-assumption .tex{font-size:20px}
+
+/* Label-only axes: do not bake math/text into the approved SVG. */
+.s18 .q27-cn-full .q27-y-axis>b{
+  position:absolute;top:50%;left:7px;right:auto;
+  transform:translateY(-50%) rotate(-90deg);transform-origin:center;
+  color:#3d6479;font:700 19px 'Segoe UI',Arial,sans-serif;
+}
+.s18 .q27-cn-full .q27-x-axis{
+  margin-top:7px;padding-left:47px;text-align:center;
+  color:#3d6479;font:700 19px 'Segoe UI',Arial,sans-serif;
+}
+.s18 .q27-cn-full .q27-x-axis i{font-style:italic}
+.s18 .q27-cn-full .q27-legend{margin-top:9px;font-size:14px;gap:9px 16px}
+.s18 .q27-cn-full .q27-legend .q27-swatch{width:15px;height:12px}
+.s18 .cn26-b{left:59%;top:85%}
