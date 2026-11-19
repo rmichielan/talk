@@ -1,62 +1,113 @@
 // General, reveal-aware slide navigation. Talk-specific behavior is injected through TalkFeatures.
-  // v33: Soft Slide + Fade. Move the complete slide (not individual text panels)
-  // by 26px while fading out/in, sequentially, so two different mathematical
-  // slides are never legible at the same time. Direction follows navigation.
-  // Use the independent CSS `translate` property: the 1600x900 scale transform
-  // on #slide must remain untouched, including in full-screen mode.
+  // V34: Animate COMPOSED slide snapshots, not the live DOM. The previous
+  // transition changed the active stage while individual descendants still had
+  // 0.3-0.6s reveal transitions, producing distracting second entrances.
+  // A view transition isolates old/new paints. The WAAPI fallback follows the
+  // same two-phase sequence and locks descendant transitions during entry.
   const slideCanvas = $('#slide');
   const deckFrame = $('#deck-frame');
   let transitionBusy = false;
   let deckInitialized = false;
+  let queuedNavigation = null;
+
   function setFrameTheme(destination, destinationStep, immediate = false) {
     if (immediate) deckFrame.style.transition = 'none';
     deckFrame.classList.toggle('is-dark-page', destination === 25 || (destination === 1 && destinationStep === 0));
     if (immediate) {
-      // Flush the initial background without animating the first render.
       void deckFrame.offsetWidth;
       deckFrame.style.removeProperty('transition');
     }
   }
+
+  function finishSlideTransition() {
+    // Leave the entry-only CSS keyframes suppressed until the next reveal.
+    // This prevents the cover entrance from replaying when snapshots disappear.
+    slideCanvas.classList.remove('deck-preparing');
+    slideCanvas.classList.add('deck-settled');
+    slideCanvas.style.removeProperty('pointer-events');
+    slideCanvas.style.removeProperty('will-change');
+    document.documentElement.classList.remove('deck-transition-backwards', 'deck-transition-to-dark');
+    transitionBusy = false;
+    if (queuedNavigation) {
+      const [nextPage, nextStep] = queuedNavigation;
+      queuedNavigation = null;
+      if (slide !== nextPage || step !== nextStep) go(nextPage, nextStep);
+    }
+  }
+
   function go(page, nextStep = 0) {
     const destination = clamp(page, 1, slideCount);
     const finalStep = clamp(nextStep, 0, slideMeta(destination).reveals);
-    if (transitionBusy) return;
+    if (transitionBusy) {
+      // Keep the latest explicit jump instead of silently dropping it.
+      queuedNavigation = [destination, finalStep];
+      return;
+    }
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (deckInitialized && destination !== slide && !reducedMotion) {
       transitionBusy = true;
-      const direction = destination > slide ? 1 : -1;
-      const offset = 26 * direction;
-      const outgoingDistance = `${-offset}px 0px`;
-      const incomingDistance = `${offset}px 0px`;
       slideCanvas.style.pointerEvents = 'none';
+      const direction = destination > slide ? 1 : -1;
+      document.documentElement.classList.toggle('deck-transition-backwards', direction < 0);
+      document.documentElement.classList.toggle('deck-transition-to-dark', destination === 25 || (destination === 1 && finalStep === 0));
+
+      if (typeof document.startViewTransition === 'function') {
+        // The browser captures the outgoing pixels, commits the new slide while
+        // hidden, and captures the fully settled incoming pixels. Neither
+        // snapshot can independently animate its headings/figures midway.
+        try {
+          const transition = document.startViewTransition(() => {
+            slideCanvas.classList.remove('deck-settled');
+            slideCanvas.classList.add('deck-preparing');
+            setFrameTheme(destination, finalStep, true);
+            commitGo(destination, finalStep);
+          });
+          transition.finished.catch(() => {}).finally(finishSlideTransition);
+        } catch (error) {
+          slideCanvas.classList.add('deck-preparing');
+          setFrameTheme(destination, finalStep, true);
+          commitGo(destination, finalStep);
+          finishSlideTransition();
+        }
+        return;
+      }
+
+      // Fallback for older browsers: sequential outgoing/incoming animation.
+      // Suppressing descendant transitions prevents a second entrance after swap.
+      const offset = `${26 * direction}px 0px`;
       slideCanvas.style.willChange = 'opacity, translate';
-      setFrameTheme(destination, finalStep);
-      let incoming = null;
       const outgoing = slideCanvas.animate([
         {opacity: 1, translate: '0px 0px'},
-        {opacity: 0, translate: outgoingDistance}
+        {opacity: 0, translate: `${-26 * direction}px 0px`}
       ], {duration: 145, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+      let incoming = null;
       outgoing.finished.then(() => {
-        // Swap only after the outgoing content is entirely invisible.
+        slideCanvas.classList.remove('deck-settled');
+        slideCanvas.classList.add('deck-preparing');
+        setFrameTheme(destination, finalStep, true);
         commitGo(destination, finalStep);
+        // Paint the final state before revealing it; never animate every child.
+        void slideCanvas.offsetWidth;
         incoming = slideCanvas.animate([
-          {opacity: 0, translate: incomingDistance},
+          {opacity: 0, translate: offset},
           {opacity: 1, translate: '0px 0px'}
         ], {duration: 190, easing: 'cubic-bezier(.22,.75,.2,1)', fill: 'both'});
         outgoing.cancel();
         return incoming.finished;
       }).catch(() => {
-        // Also leave a valid page visible if an animation gets interrupted.
-        if (slide !== destination) commitGo(destination, finalStep);
+        if (slide !== destination) {
+          slideCanvas.classList.add('deck-preparing');
+          setFrameTheme(destination, finalStep, true);
+          commitGo(destination, finalStep);
+        }
       }).finally(() => {
         outgoing.cancel();
         incoming?.cancel();
-        slideCanvas.style.removeProperty('pointer-events');
-        slideCanvas.style.removeProperty('will-change');
-        transitionBusy = false;
+        finishSlideTransition();
       });
       return;
     }
+    slideCanvas.classList.remove('deck-settled', 'deck-preparing');
     setFrameTheme(destination, finalStep, !deckInitialized || reducedMotion);
     commitGo(destination, finalStep);
     deckInitialized = true;

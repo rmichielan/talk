@@ -1,3 +1,12 @@
+# v34 — Snapshot-based page transitions (2026-11-19)
+
+- Fixed the visible popping of text, diagrams and mathematical annotations during slide changes (especially 15–16).
+- Soft Slide + Fade now animates composed page snapshots using the native View Transitions API where available, with a sequential Web Animations fallback otherwise.
+- Temporarily suppresses nested CSS transitions while preparing the incoming page, and keeps entry keyframes suppressed until the next reveal so that hidden headings cannot reappear after the transition.
+- Maintains the 335 ms directional animation, supports reduced motion, and keeps slide-jump navigation functional.
+- Added browser regression coverage for all 48 adjacent slide changes, difficult boundaries, fallback mode, and reduced motion.
+- All slide markup, maths, scientific simulations, data and internal reveal counts remain unchanged from v33.
+
 # v32 — Final slide 19–25 polish (2026-11-19)
 
 - Slide 19: simplify proof title and reduce failure-bound formula; remove redundant concluding note.

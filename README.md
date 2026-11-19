@@ -1,8 +1,8 @@
 # Planted Clique Recovery in Random Geometric Graphs
 
-**Scientific presentation · 25 slides · HTML / CSS / JavaScript · v33 (based on the v30 refactor)**
+**Scientific presentation · 25 slides · HTML / CSS / JavaScript · v34 (based on the v30 refactor)**
 
-The v30 refactor preserved the v29 HTML byte for byte. Version **v31** introduced focused presentation changes: a non-overlapping page-transition wipe, offline fallback for the Torino background, small bibliography improvements, corrected edge legends, and streamlined headings on slides 17–18. Version **v32** refines slides 19–25: proof-idea typography, simpler geometric diagrams, comparison axes and legend, consistent hollow curve markers, conclusion icons and final QR placement. Version **v33** replaces the full-screen wipe between pages with a 335 ms directional Soft Slide + Fade transition, without changing slide content or the internal reveals. The simulation algorithms and approved experiment datasets remain unchanged.
+The v30 refactor preserved the v29 HTML byte for byte. Version **v31** introduced focused presentation changes: a non-overlapping page-transition wipe, offline fallback for the Torino background, small bibliography improvements, corrected edge legends, and streamlined headings on slides 17–18. Version **v32** refines slides 19–25: proof-idea typography, simpler geometric diagrams, comparison axes and legend, consistent hollow curve markers, conclusion icons and final QR placement. Version **v33** introduced a directional Soft Slide + Fade transition. Version **v34** fixes visual popping during page changes: the browser animates composed snapshots instead of live slide elements, and all new-slide elements are settled before the incoming snapshot is captured. A two-phase fallback handles browsers without the View Transitions API. The internal reveal animations remain available after each page change. The simulation algorithms and approved experiment datasets remain unchanged.
 
 ## Present the talk
 
@@ -32,7 +32,7 @@ Source integrity tests (Python standard library):
 python -m unittest discover -s tests -p test_project.py
 ```
 
-Optional Chromium interaction smoke test: install `playwright` and a supported Chromium browser, then run `python tests/browser_smoke.py`. `TALK_CHROME` can point to a local Chromium executable.
+Optional Chromium interaction smoke tests: install `playwright` and a supported Chromium browser, then run `python tests/browser_smoke.py` and `TALK_QUICK=1 python tests/transition_regression.py`. Omit `TALK_QUICK=1` for the extended test across all 48 page boundaries. `TALK_CHROME` can point to a local Chromium executable.
 
 ## Source map
 

@@ -675,3 +675,31 @@
 .s25 .con25-joint{width:555px;line-height:1.42}
 /* The outer scientific SVG has a fixed height; do not apply it to inner MathJax SVG glyphs. */
 .s20 .cn20-planted-picture .cn32-planted-tex .tex svg{width:auto!important;height:auto!important;max-width:100%;max-height:43px;display:inline-block;vertical-align:middle}
+
+
+/* V34: snapshot-based Soft Slide + Fade; changing a slide must not replay
+   component-level reveals. Individual reveals still animate on the next step. */
+#deck-frame {view-transition-name:talk-slide-frame;}
+#slide.deck-preparing *,#slide.deck-preparing *::before,#slide.deck-preparing *::after {
+  transition:none !important;
+  animation:none !important;
+}
+#slide.deck-settled *,#slide.deck-settled *::before,#slide.deck-settled *::after {
+  animation:none !important;
+}
+html {--talk-transition-surface:#f3f7f9;}
+html.deck-transition-to-dark {--talk-transition-surface:#0b2031;}
+::view-transition-image-pair(talk-slide-frame) {background:var(--talk-transition-surface);isolation:isolate;}
+::view-transition-group(talk-slide-frame) {animation-duration:335ms;animation-timing-function:linear;}
+::view-transition-old(talk-slide-frame) {animation:talk-out-forward 145ms cubic-bezier(.4,0,1,1) both;}
+::view-transition-new(talk-slide-frame) {animation:talk-in-forward 190ms 145ms cubic-bezier(.22,.75,.2,1) both;}
+html.deck-transition-backwards::view-transition-old(talk-slide-frame) {animation-name:talk-out-backward;}
+html.deck-transition-backwards::view-transition-new(talk-slide-frame) {animation-name:talk-in-backward;}
+@keyframes talk-out-forward {from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-26px)}}
+@keyframes talk-in-forward {from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
+@keyframes talk-out-backward {from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(26px)}}
+@keyframes talk-in-backward {from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:translateX(0)}}
+@media (prefers-reduced-motion:reduce) {
+ #deck-frame {view-transition-name:none;}
+ ::view-transition-group(talk-slide-frame),::view-transition-old(talk-slide-frame),::view-transition-new(talk-slide-frame){animation:none !important;}
+}
