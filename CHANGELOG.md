@@ -1,3 +1,14 @@
+# v32 — Final slide 19–25 polish (2026-11-19)
+
+- Slide 19: simplify proof title and reduce failure-bound formula; remove redundant concluding note.
+- Slide 20: simplify title; improve LaTeX labels for geometric points and balls; reduce right-side math.
+- Slide 21: simplify and rebalance geometry and count panels; improve label contrast; remove two unused formulas.
+- Slide 22: remove redundant regime labels and caveat, align external axis labels and legend styling with slides 13/18.
+- Slide 23: all three algorithms use identical hollow circle marker styling; slightly larger axis and tick labels. Original simulation data unchanged.
+- Slide 24: replace the second diagram with a Common Neighbors illustration; replace the third with two colored three-ring question-mark symbols.
+- Slide 25: deliberate coauthor line break and QR next to the author information.
+- Slides 1–18, math statements beyond the requested removals, underlying data, interactive models, and reveal counts are unchanged.
+
 # v28 — Targeted final layout and navigation polish
 
 See `docs/REVISION_HISTORY.md (section v28)` for the complete per-slide checklist and QA. A click on the footer counter now jumps to any slide by number. Slides 1, 4, 5, 8–13 receive targeted edits; other slides and scientific data are unchanged.

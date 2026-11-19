@@ -84,15 +84,15 @@ const ConclusionScenes=(()=>{
    for(let j=0;j<=5;j++){
      const v=j/5,py=y(v);
      svg('line',{x1:L,y1:py,x2:L+W,y2:py,stroke:'#dce5ef','stroke-width':j===0?1.45:1.05},root);
-     text(root,L-17,py+6,`${20*j}%`,{'class':'plot-text','font-size':19,'text-anchor':'end','font-weight':620,fill:'#516a80'});
+     text(root,L-17,py+6,`${20*j}%`,{'class':'plot-text','font-size':21,'text-anchor':'end','font-weight':620,fill:'#516a80'});
    }
    for(const k of [2,5,10,15,20,25,30,35,40]){
      const px=x(k);svg('line',{x1:px,y1:B,x2:px,y2:B+9,stroke:'#92aabe','stroke-width':1.5},root);
-     text(root,px,B+35,String(k),{'class':'plot-text','font-size':19,'text-anchor':'middle','font-weight':650,fill:'#526578'});
+     text(root,px,B+35,String(k),{'class':'plot-text','font-size':21,'text-anchor':'middle','font-weight':650,fill:'#526578'});
    }
    svg('path',{d:`M${L} ${T-6}V${B}H${L+W}`,fill:'none',stroke:'#59758d','stroke-width':1.8},root);
-   text(root,L+W/2,467,'Planted clique size  k',{'class':'plot-text','font-size':22,'text-anchor':'middle','font-weight':730,fill:'#12263b'});
-   text(root,25,209,'Exact recovery (%)',{'class':'plot-text','font-size':20,'text-anchor':'middle','font-weight':730,fill:'#12263b',transform:'rotate(-90 25 209)'});
+   text(root,L+W/2,467,'Planted clique size  k',{'class':'plot-text','font-size':25,'text-anchor':'middle','font-weight':730,fill:'#12263b'});
+   text(root,25,209,'Exact recovery (%)',{'class':'plot-text','font-size':23,'text-anchor':'middle','font-weight':730,fill:'#12263b',transform:'rotate(-90 25 209)'});
    for(const [alg,color] of [['VD',blue],['CN',orange]]){
      const values=dataset.curves.filter(r=>r.mu===mu&&r.algorithm===alg).sort((a,b)=>a.k-b.k);
      if(values.length!==39)throw new Error(`Missing exact-recovery observations for ${mu} ${alg}`);
@@ -104,8 +104,7 @@ const ConclusionScenes=(()=>{
        const cx=x(p.k),cy=y(p.rate);
        let node;
        if(marker){
-         if(alg==='VD')node=svg('circle',{cx,cy,r:7.3,fill:'#ffffff',stroke:color,'stroke-width':3.7},root);
-         else node=svg('path',{d:`M${cx.toFixed(2)} ${(cy-8.7).toFixed(2)} L${(cx+8.7).toFixed(2)} ${cy.toFixed(2)} L${cx.toFixed(2)} ${(cy+8.7).toFixed(2)} L${(cx-8.7).toFixed(2)} ${cy.toFixed(2)} Z`,fill:color,stroke:'#ffffff','stroke-width':1.6},root);
+         node=svg('circle',{cx,cy,r:8.2,fill:'#ffffff',stroke:color,'stroke-width':3.7},root);
        }else node=svg('circle',{cx,cy,r:7,fill:'transparent',stroke:'none'},root);
        const tooltip=svg('title',{},node);tooltip.textContent=`${alg} · μ=${mu} · k=${p.k}: ${(p.rate*100).toFixed(1)}% (${p.success_count}/1000)`;
      }
@@ -121,8 +120,8 @@ const ConclusionScenes=(()=>{
      const style={d:line,stroke:green,'stroke-width':5.5,fill:'none','stroke-linejoin':'round','stroke-linecap':'round'};
      svg('path',style,root);
      for(const p of points){
-       const cx=x(p.k),cy=y(p.rate),r=9.1;
-       const marker=svg('path',{d:`M${cx.toFixed(2)} ${(cy-r).toFixed(2)} L${(cx+r*.9).toFixed(2)} ${(cy+r*.70).toFixed(2)} L${(cx-r*.9).toFixed(2)} ${(cy+r*.70).toFixed(2)} Z`,stroke:'#fff','stroke-width':2.0,fill:green},root);
+       const cx=x(p.k),cy=y(p.rate);
+       const marker=svg('circle',{cx,cy,r:8.2,stroke:green,'stroke-width':3.7,fill:'#ffffff'},root);
        const title=svg('title',{},marker);
        title.textContent=`HC ${exact?'(exact)':'(q=256 approximate)'} · μ=${mu} · k=${p.k}: ${(p.rate*100).toFixed(1)}% (${p.success_count}/${p.trials})`;
      }

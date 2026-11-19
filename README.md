@@ -1,8 +1,8 @@
 # Planted Clique Recovery in Random Geometric Graphs
 
-**Scientific presentation · 25 slides · HTML / CSS / JavaScript · v31 (based on the v30 refactor)**
+**Scientific presentation · 25 slides · HTML / CSS / JavaScript · v32 (based on the v30 refactor)**
 
-The v30 refactor preserved the v29 HTML byte for byte. Version **v31** introduces focused presentation changes: a non-overlapping page-transition wipe, offline fallback for the Torino background, small bibliography improvements, corrected edge legends, and streamlined headings on slides 17–18. The simulation algorithms and approved experiment datasets are unchanged.
+The v30 refactor preserved the v29 HTML byte for byte. Version **v31** introduced focused presentation changes: a non-overlapping page-transition wipe, offline fallback for the Torino background, small bibliography improvements, corrected edge legends, and streamlined headings on slides 17–18. Version **v32** refines slides 19–25: proof-idea typography, simpler geometric diagrams, comparison axes and legend, consistent hollow curve markers, conclusion icons and final QR placement. The simulation algorithms and approved experiment datasets remain unchanged.
 
 ## Present the talk
 

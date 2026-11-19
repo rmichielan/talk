@@ -644,3 +644,38 @@
 .s18 .cn18-condition-head {min-height:32px;margin-bottom:4px;}
 .s18[data-step="3"] .cn18-condition {padding-top:7px;padding-bottom:7px;}
 .s18[data-step="3"] .cn18-condition-head {min-height:31px;height:31px;}
+
+/* V32: scientific narrative refinements (slides 19-25 only). */
+.s19 .cn19-why-eq .tex{font-size:28px}
+.s19 .cn19-why-wrap{gap:14px}
+/* All map annotations are real build-time rendered LaTeX, not SVG plain text. */
+.s20 .cn32-planted-tex{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#35667a}
+.s20 .cn32-planted-vertex .tex{font-size:34px;font-weight:650}
+.s20 .cn32-planted-ball .tex{font-size:22px}
+.s20 .cn20-planted-reason .cn20-planted-eq .tex{font-size:32px}
+.s20 .cn20-planted-reason .cn20-planted-result .tex{font-size:31px}
+.s21 .cn20-region-diagram{height:329px;margin:0 auto 1px;max-width:100%}
+.s21 .cn21-fo{background:#fffefaeb;border:1px solid #ebdac2;border-radius:7px;box-sizing:border-box}
+.s21 .cn21-fo .tex{font-size:24px}
+.s21 .cn21-vlabel{background:#ffffffea;border-color:#d8e7ec}
+.s21 .cn20-lens{height:218px;margin:6px auto 4px}
+.s21 .cn20-poisson{margin-top:5px}
+.s21 .cn20-tailboxes{margin-top:20px}
+.s21 .cn20-count{display:flex;flex-direction:column}
+.s21 .cn20-count .cn20-tailboxes{margin-bottom:auto}
+.s22 .q27-comparison-labels{display:none}
+.s22 .con22-diagram-stack{margin-top:12px;gap:13px}
+.s22 .q27-mini-y{font-size:13px;font-style:normal;font-weight:730;line-height:1.15;color:#466f81}
+.s22 .con22-axes{font-size:16px;margin:7px 0 1px;padding-left:40px;padding-right:0;color:#3d6479}
+.s22 .con22-theory-note.q27-legend{margin:8px 0 0;padding:9px 0 0;font-size:14px;line-height:1.3;gap:9px 13px;font-weight:690;color:#3d6479;border-top:1px solid #e0eaef}
+.s22 .con22-theory-note .q27-swatch{width:15px;height:12px}
+.s23 .con23-key{position:relative;width:42px;height:5px;margin-right:7px}
+.s23 .con23-key:after,.s23 .con23-key.vd:after,.s23 .con23-key.cn:after,.s23 .con23-key.hc:after{content:"";position:absolute;box-sizing:border-box;left:13px;top:-6px;width:17px;height:17px;border:3.4px solid currentColor;border-radius:50%;background:#fff;transform:none}
+.s23 .con23-key.vd{color:#1f5aa8}.s23 .con23-key.cn{color:#e4792d}.s23 .con23-key.hc{color:#218765}
+.s23 .con23-key.hc:after{border-left:3.4px solid #218765;border-right:3.4px solid #218765;border-bottom:3.4px solid #218765}
+.s25 .con25-qr{left:690px;right:auto;top:434px;width:164px;padding:10px 10px 8px}
+.s25 .con25-qr img{height:145px}
+.s25 .con25-qr span{font-size:15px}
+.s25 .con25-joint{width:555px;line-height:1.42}
+/* The outer scientific SVG has a fixed height; do not apply it to inner MathJax SVG glyphs. */
+.s20 .cn20-planted-picture .cn32-planted-tex .tex svg{width:auto!important;height:auto!important;max-width:100%;max-height:43px;display:inline-block;vertical-align:middle}
