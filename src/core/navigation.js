@@ -1,12 +1,22 @@
 // General, reveal-aware slide navigation. Talk-specific behavior is injected through TalkFeatures.
-  // Page changes are handled by a full-opacity wipe, never a crossfade of two
-  // text-heavy slides. Reveals *within* a slide retain their existing timing.
-  const transitionVeil = document.createElement('div');
-  transitionVeil.id = 'deck-transition-veil';
-  transitionVeil.setAttribute('aria-hidden', 'true');
-  $('#slide').appendChild(transitionVeil);
+  // v33: Soft Slide + Fade. Move the complete slide (not individual text panels)
+  // by 26px while fading out/in, sequentially, so two different mathematical
+  // slides are never legible at the same time. Direction follows navigation.
+  // Use the independent CSS `translate` property: the 1600x900 scale transform
+  // on #slide must remain untouched, including in full-screen mode.
+  const slideCanvas = $('#slide');
+  const deckFrame = $('#deck-frame');
   let transitionBusy = false;
   let deckInitialized = false;
+  function setFrameTheme(destination, destinationStep, immediate = false) {
+    if (immediate) deckFrame.style.transition = 'none';
+    deckFrame.classList.toggle('is-dark-page', destination === 25 || (destination === 1 && destinationStep === 0));
+    if (immediate) {
+      // Flush the initial background without animating the first render.
+      void deckFrame.offsetWidth;
+      deckFrame.style.removeProperty('transition');
+    }
+  }
   function go(page, nextStep = 0) {
     const destination = clamp(page, 1, slideCount);
     const finalStep = clamp(nextStep, 0, slideMeta(destination).reveals);
@@ -14,30 +24,40 @@
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (deckInitialized && destination !== slide && !reducedMotion) {
       transitionBusy = true;
-      transitionVeil.classList.toggle('dark', destination === 1 || destination === 25);
-      transitionVeil.style.visibility = 'visible';
-      transitionVeil.style.pointerEvents = 'auto';
-      const close = transitionVeil.animate([
-        {clipPath:'inset(0 100% 0 0)'},
-        {clipPath:'inset(0 0 0 0)'}
-      ],{duration:235,easing:'cubic-bezier(.42,0,.25,1)',fill:'forwards'});
-      close.finished.then(() => {
-        // When the curtain is fully opaque, swap the stage. Nothing from the
-        // previous slide can show through while the new slide is being drawn.
+      const direction = destination > slide ? 1 : -1;
+      const offset = 26 * direction;
+      const outgoingDistance = `${-offset}px 0px`;
+      const incomingDistance = `${offset}px 0px`;
+      slideCanvas.style.pointerEvents = 'none';
+      slideCanvas.style.willChange = 'opacity, translate';
+      setFrameTheme(destination, finalStep);
+      let incoming = null;
+      const outgoing = slideCanvas.animate([
+        {opacity: 1, translate: '0px 0px'},
+        {opacity: 0, translate: outgoingDistance}
+      ], {duration: 145, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+      outgoing.finished.then(() => {
+        // Swap only after the outgoing content is entirely invisible.
         commitGo(destination, finalStep);
-        const open = transitionVeil.animate([
-          {clipPath:'inset(0 0 0 0)'},
-          {clipPath:'inset(0 0 0 100%)'}
-        ],{duration:310,easing:'cubic-bezier(.22,.7,.2,1)',fill:'forwards'});
-        return open.finished;
-      }).catch(() => {}).finally(() => {
-        transitionVeil.getAnimations().forEach(a=>a.cancel());
-        transitionVeil.style.visibility = 'hidden';
-        transitionVeil.style.pointerEvents = 'none';
+        incoming = slideCanvas.animate([
+          {opacity: 0, translate: incomingDistance},
+          {opacity: 1, translate: '0px 0px'}
+        ], {duration: 190, easing: 'cubic-bezier(.22,.75,.2,1)', fill: 'both'});
+        outgoing.cancel();
+        return incoming.finished;
+      }).catch(() => {
+        // Also leave a valid page visible if an animation gets interrupted.
+        if (slide !== destination) commitGo(destination, finalStep);
+      }).finally(() => {
+        outgoing.cancel();
+        incoming?.cancel();
+        slideCanvas.style.removeProperty('pointer-events');
+        slideCanvas.style.removeProperty('will-change');
         transitionBusy = false;
       });
       return;
     }
+    setFrameTheme(destination, finalStep, !deckInitialized || reducedMotion);
     commitGo(destination, finalStep);
     deckInitialized = true;
   }

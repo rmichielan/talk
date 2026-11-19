@@ -614,20 +614,16 @@
 .s15 .vd15-v29-note {padding-left:29px;margin-top:11px;text-align:center;font:600 11px 'Segoe UI',Arial,sans-serif;color:#748d98}
 
 
-/* v31: presenter-wide, non-overlapping page transitions.
-   Opaque wipe hides the entire canvas before changing the visible stage. */
+/* v33: Soft Slide + Fade on the whole 1600x900 canvas (via Web Animations).
+   The outgoing slide leaves over 145ms; then the next slide enters over 190ms.
+   No opaque wipe, no overlapping text, no change to the deck scale transform.
+   The frame under the fading slide softly blends when entering/leaving a dark page. */
 .stage {transition:none !important;}
 .stage:not(.is-active) {opacity:0 !important;visibility:hidden !important;pointer-events:none !important;}
 .stage.is-active {opacity:1 !important;visibility:visible !important;}
-#deck-transition-veil {
-  position:absolute;inset:0;z-index:120;visibility:hidden;pointer-events:none;
-  clip-path:inset(0 100% 0 0);
-  background:linear-gradient(128deg,#eef6f7 0%,#f4f8fa 55%,#e4f1f3 100%);
-  box-shadow:inset -4px 0 0 #4babb526;
-  will-change:clip-path;
-}
-#deck-transition-veil.dark {background:linear-gradient(128deg,#091827,#123044 65%,#0b2031);}
-@media(prefers-reduced-motion:reduce) {#deck-transition-veil {display:none !important;}}
+#deck-frame {background-color:#f3f7f9;transition:background-color 335ms cubic-bezier(.22,.75,.2,1);}
+#deck-frame.is-dark-page {background-color:#0b2031;}
+@media(prefers-reduced-motion:reduce) {#deck-frame {transition:none !important;}}
 
 /* Slides 4/9: only show the labels that are meaningful in the current step. */
 .s4 .edge-legend-unlabeled,.s9 .edge-legend-unlabeled {display:none;}
