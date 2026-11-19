@@ -762,3 +762,21 @@ html.deck-transition-backwards::view-transition-new(talk-slide-frame) {animation
 .s18 .q27-cn-full .q27-legend{margin-top:9px;font-size:14px;gap:9px 16px}
 .s18 .q27-cn-full .q27-legend .q27-swatch{width:15px;height:12px}
 .s18 .cn26-b{left:59%;top:85%}
+
+/* V36: clean diagram conventions and final proportional refinements. */
+/* Slide 15: three regime bands + schematic geometry + axes, no legend or note. */
+.s15 .vd15-regime-view{display:flex;align-items:center;justify-content:center}
+.s15 .vd15-v29-figure{padding:0}
+.s15 .vd15-v29-y,.s15 .vd15-v29-x{color:#3d6479;font:700 19px 'Segoe UI',Arial,sans-serif}
+.s15 .vd15-v29-x{margin-top:10px}
+/* Slide 20: emphasize the question, not the supporting equations. */
+.s20 .cn20-planted-reason>.vd-panel-heading strong{font-size:21px}
+.s20 .cn20-planted-reason>.vd-panel-heading strong .tex{font-size:24px}
+.s20 .cn20-planted-reason .cn20-planted-eq .tex{font-size:28px}
+.s20 .cn20-planted-reason .cn20-planted-result .tex{font-size:28px}
+/* Slide 21: right-hand geometry given comparable visual size to the left. */
+.s21 .cn20-lens{height:295px;margin:4px auto 3px}
+.s21 .cn20-tailboxes{margin-top:14px}
+/* Slide 22: typography and centered vertical axes match slides 13/18. */
+.s22 .q27-mini-y{font:700 19px 'Segoe UI',Arial,sans-serif;color:#3d6479;writing-mode:vertical-rl;transform:rotate(180deg)}
+.s22 .con22-axes{font:700 19px 'Segoe UI',Arial,sans-serif;color:#3d6479;margin-top:8px;text-align:center}
